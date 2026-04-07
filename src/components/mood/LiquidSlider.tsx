@@ -2,11 +2,13 @@
 
 import {
   motion,
+  AnimatePresence,
   useDragControls,
   useMotionValue,
   useMotionValueEvent,
 } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getMoodLevel } from "@/lib/moodConfig";
 
 const MIN_SCORE = 0;
 const MAX_SCORE = 10;
@@ -61,6 +63,7 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
   const [isDragging, setIsDragging] = useState(false);
   const [idleStep, setIdleStep] = useState(0);
   const [dragStep, setDragStep] = useState(0);
+  const lastHapticScore = useRef<number>(-1);
 
   const scoreFromX = useMemo(() => {
     if (maxDragX <= 0) {
@@ -77,6 +80,10 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
 
   const colorMix = effectiveScore / MAX_SCORE;
   const blobColor = blendHex("#4682b4", "#8b5cf6", colorMix);
+  const moodLevel = getMoodLevel(effectiveScore);
+
+  // Percentuale posizione thumb per calcolare la track colorata
+  const thumbPercent = maxDragX > 0 ? (x.get() / maxDragX) * 100 : (effectiveScore / MAX_SCORE) * 100;
 
   const activePath = isDragging
     ? BLOB_PATHS[dragStep % BLOB_PATHS.length]
@@ -134,6 +141,11 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
     const nextScore = clampScore(Math.round((clampedX / maxDragX) * MAX_SCORE));
     if (nextScore !== effectiveScore) {
       onValueChange(nextScore);
+      // Haptic feedback ad ogni cambio di score
+      if (nextScore !== lastHapticScore.current) {
+        lastHapticScore.current = nextScore;
+        navigator.vibrate?.(8);
+      }
     }
   });
 
@@ -144,7 +156,18 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
       style={{ touchAction: "none" }}
       aria-label="Selettore umore"
     >
+      {/* Track base */}
       <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-white/20" />
+
+      {/* Track colorata fino alla posizione del thumb */}
+      <div
+        className="absolute top-1/2 left-0 h-[2px] -translate-y-1/2 rounded-full transition-all duration-75"
+        style={{
+          width: `calc(${thumbPercent}% + ${BLOB_SIZE / 2}px)`,
+          background: `linear-gradient(to right, #4682b4, ${blobColor})`,
+          opacity: 0.7,
+        }}
+      />
 
       <motion.div
         role="slider"
@@ -159,6 +182,8 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
         dragMomentum={false}
         style={{ x, width: BLOB_SIZE, height: BLOB_SIZE, touchAction: "none" }}
         className="absolute top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
+        animate={{ scale: isDragging ? 1.12 : 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
         onPointerDown={(event) => {
           dragControls.start(event);
         }}
@@ -170,8 +195,25 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
         }}
         onDragEnd={() => {
           setIsDragging(false);
+          lastHapticScore.current = -1;
         }}
       >
+        {/* Label flottante sopra il blob */}
+        <AnimatePresence>
+          {isDragging && (
+            <motion.div
+              key="drag-label"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm pointer-events-none"
+            >
+              {effectiveScore} {moodLevel.emoji}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <svg viewBox="0 0 60 60" width={BLOB_SIZE} height={BLOB_SIZE} aria-hidden>
           <defs>
             <radialGradient id="liquid-slider-blob-gradient" cx="50%" cy="50%" r="50%">

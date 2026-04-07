@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import { OlisticazziGradientOverlay } from "@/components/olisticazzi/OlisticazziGradientOverlay";
+import { GradientIntensityProvider } from "@/context/GradientIntensityContext";
 import "@/services/db";
 
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {
   title: "Olisticazzi",
@@ -18,10 +20,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it">
-      <body className={`${inter.className} min-h-screen bg-black text-white`}>
-        <OlisticazziGradientOverlay />
-        {children}
+    <html lang="it" className={`${outfit.variable} ${plusJakartaSans.variable}`}>
+      <body className="min-h-screen bg-black text-white font-body">
+        <GradientIntensityProvider>
+          <OlisticazziGradientOverlay />
+          {children}
+        </GradientIntensityProvider>
       </body>
     </html>
   );

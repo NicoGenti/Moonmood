@@ -4,6 +4,7 @@ import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect } from "react";
 
 import { useMoodScore } from "@/hooks/useMoodStore";
+import { useGradientIntensity } from "@/context/GradientIntensityContext";
 
 type Rgb = { r: number; g: number; b: number };
 
@@ -62,8 +63,15 @@ function buildGradient(score: number): string {
   `;
 }
 
-export function OlisticazziGradientOverlay() {
+export interface OlisticazziGradientOverlayProps {
+  /** Moltiplicatore opacità blob e velocità drift (0-1, default 1) */
+  intensity?: number;
+}
+
+export function OlisticazziGradientOverlay({ intensity: intensityProp }: OlisticazziGradientOverlayProps) {
   const moodScore = useMoodScore();
+  const { intensity: contextIntensity } = useGradientIntensity();
+  const intensity = intensityProp ?? contextIntensity;
   const moodMotion = useMotionValue(moodScore);
   const gradientBackground = useTransform(moodMotion, (value) => buildGradient(value));
 
@@ -95,7 +103,7 @@ export function OlisticazziGradientOverlay() {
           style={{
             left: `${lerpByMood(moodScore, 8 + index * 16, 14 + index * 18)}%`,
             top: `${lerpByMood(moodScore, 12 + index * 14, 8 + index * 16)}%`,
-            opacity: lerpByMood(moodScore, 0.16, 0.42),
+            opacity: lerpByMood(moodScore, 0.16, 0.42) * intensity,
             background: `radial-gradient(circle at 40% 40%, ${blobColors[index]}99 0%, transparent 68%)`,
             willChange: "transform"
           }}
@@ -105,7 +113,7 @@ export function OlisticazziGradientOverlay() {
             scale: blob.scale
           }}
           transition={{
-            duration: blob.duration,
+            duration: blob.duration / intensity,
             repeat: Infinity,
             repeatType: "mirror",
             ease: "easeInOut"
