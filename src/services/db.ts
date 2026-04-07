@@ -1,0 +1,96 @@
+import Dexie, { type Table } from "dexie";
+import { z } from "zod";
+
+import type { MoodEntry, MoodLog } from "@/types/mood";
+
+const LOCAL_STORAGE_KEY = "olisticazzi_logs";
+
+const moodLogSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  moodScore: z.number().min(0).max(10),
+  note: z.string().max(280).optional(),
+});
+
+class OlisticazziDB extends Dexie {
+  dailyLogs!: Table<MoodLog>;
+
+  constructor() {
+    super("OlisticazziDB");
+    this.version(1).stores({
+      dailyLogs: "id, date, createdAt",
+    });
+  }
+}
+
+export const db = new OlisticazziDB();
+
+function getTodayDateString(): string {
+  return new Date().toLocaleDateString("sv-SE");
+}
+
+function readLocalStorageLogs(): MoodLog[] {
+  const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (!raw) {
+    return [];
+  }
+
+  try {
+    return JSON.parse(raw) as MoodLog[];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalStorageLogs(logs: MoodLog[]): void {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(logs));
+}
+
+export async function saveMoodLog(entry: MoodEntry): Promise<MoodLog> {
+  moodLogSchema.parse(entry);
+
+  const log: MoodLog = {
+    ...entry,
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
+  };
+
+  try {
+    await db.dailyLogs.put(log);
+  } catch {
+    const existing = readLocalStorageLogs();
+    existing.push(log);
+    writeLocalStorageLogs(existing);
+  }
+
+  return log;
+}
+
+export async function getTodayLog(): Promise<MoodLog | null> {
+  const today = getTodayDateString();
+
+  try {
+    const log = await db.dailyLogs.where("date").equals(today).first();
+    if (log) {
+      return log;
+    }
+
+    const fallback = readLocalStorageLogs();
+    return fallback.find((item) => item.date === today) ?? null;
+  } catch {
+    const all = readLocalStorageLogs();
+    return all.find((log) => log.date === today) ?? null;
+  }
+}
+
+export async function getAllLogs(): Promise<MoodLog[]> {
+  try {
+    const dexieLogs = await db.dailyLogs.orderBy("createdAt").reverse().toArray();
+    if (dexieLogs.length > 0) {
+      return dexieLogs;
+    }
+
+    return readLocalStorageLogs().sort((a, b) => b.createdAt - a.createdAt);
+  } catch {
+    return readLocalStorageLogs().sort((a, b) => b.createdAt - a.createdAt);
+  }
+}
