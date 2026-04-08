@@ -1,3 +1,5 @@
+import { describe, expect, it } from "@jest/globals";
+
 import { calculateMoodTrend } from "@/services/moodTrend";
 import type { MoodLog } from "@/types/mood";
 import type { MoodTrend } from "@/types/oracle";

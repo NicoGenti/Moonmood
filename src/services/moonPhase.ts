@@ -36,12 +36,15 @@ export function getMoonPhase(date: Date): MoonPhaseName {
     date.getMonth() / 12 +
     date.getDate() / 365.25;
 
-  // moonphase.new(decimalYear) returns the JDE of the new moon nearest that year.
+  // moonphase['new'](decimalYear) returns the JDE of the new moon nearest that year.
+  // The function is named 'new' in the astronomia source (reserved word — use bracket notation).
   // If the returned new moon is in the future relative to our date, step back
   // one full lunar month to find the most recent new moon before the date.
-  let newMoonJDE = moonphase.new(decimalYear);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const newMoonFn = (moonphase as any)["new"] as (year: number) => number;
+  let newMoonJDE = newMoonFn(decimalYear);
   if (newMoonJDE > jde) {
-    newMoonJDE = moonphase.new(decimalYear - 29.53 / 365.25);
+    newMoonJDE = newMoonFn(decimalYear - 29.53 / 365.25);
   }
 
   // Age in days within the current lunar cycle

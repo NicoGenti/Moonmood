@@ -1,3 +1,5 @@
+import { describe, expect, it } from "@jest/globals";
+
 import { getMoonPhase } from "@/services/moonPhase";
 import { MOON_PHASE_NAMES } from "@/types/astrology";
 import type { MoonPhaseName } from "@/types/astrology";
