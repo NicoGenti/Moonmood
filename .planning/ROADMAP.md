@@ -19,7 +19,7 @@ L'interfaccia è progettata **mobile-first** con touch targets e layout responsi
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Mood Input** - User can log daily mood with Moonmood UI and liquid slider (completed 2026-04-07)
-- [ ] **Phase 2: Oracle Response** - App delivers a meaningful oracle card and remedy based on mood and lunar phase
+- [x] **Phase 2: Oracle Response** - App delivers a meaningful oracle card and remedy based on mood and lunar phase (completed 2026-04-08)
 - [ ] **Phase 3: Mood History** - User can review past logs and oracle responses
 - [ ] **Phase 4: PWA Shell** - App is installable and works fully offline
 
@@ -74,7 +74,12 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. User can navigate to a history view listing all past logs with date, score, and oracle card name
   2. Tapping a past log opens a detail view showing the text note, oracle card, remedy, and lunar phase captured at submission time
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Define history contracts + grouped paging transformer + upgraded useMoodHistory hook
+- [ ] 03-02-PLAN.md — Build /history card-row month-grouped list UI, load-more, empty-state, and navigation entry points
+- [ ] 03-03-PLAN.md — Implement route-based history detail experience with graceful fallback and human verification
 
 ### Phase 4: PWA Shell
 **Goal**: The app is installable on any device (desktop and mobile) and works completely offline after first load
@@ -94,6 +99,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Mood Input | 6/6 | Complete   | 2026-04-07 |
-| 2. Oracle Response | 5/6 | In Progress|  |
+| 2. Oracle Response | 5/6 | Complete    | 2026-04-08 |
 | 3. Mood History | 0/? | Not started | - |
 | 4. PWA Shell | 0/? | Not started | - |

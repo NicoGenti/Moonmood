@@ -177,3 +177,31 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - Disabling network access does not prevent lunar phase calculation for oracle selection.
 - Oracle selection and `/oracle` rendering continue to function with bundled data and local persistence only.
 - Any astrology dependency used in this path is a local library/package, not a remote service contract.
+
+---
+
+## Phase 3: Mood History
+
+### HIST-01 — Browse Full Mood History with Grouped Reflective List
+
+**Statement:** The user shall be able to navigate to a dedicated history view that lists persisted mood logs in newest-first order with emotionally readable cues and explicit progressive loading.
+
+**Acceptance criteria:**
+- A dedicated `/history` view is reachable from both the editable home flow and saved read-only flow.
+- History entries are shown as card rows (not table/timeline), grouped by Italian month headers.
+- Each row includes date, mood score with emoji/color cue, and oracle card preview text.
+- Initial render shows a recent chunk and exposes explicit `Carica altre memorie` to load older records.
+- Empty history state shows warm Italian copy, a one-line reflection benefit, and CTA back to `/`.
+
+---
+
+### HIST-02 — Reflect on Historical Entry Detail with Graceful Fallbacks
+
+**Statement:** Selecting a history entry shall open a dedicated detail experience showing the saved note, oracle card, remedy, and lunar phase when available, while older/incomplete records remain readable through graceful fallback messaging.
+
+**Acceptance criteria:**
+- Selecting a row opens a dedicated detail experience for the requested historical date.
+- Ready entries render note, oracle card name/description, remedy text, and moon phase label.
+- Incomplete entries render available fields plus the Italian fallback message: `Alcuni dettagli oracolari non erano ancora disponibili in questa memoria.`
+- Detail view back action returns to the list using browser-history behavior to preserve return context (including scroll state where supported).
+- Detail rendering never crashes when optional historical oracle fields are missing.
