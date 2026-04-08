@@ -1,3 +1,5 @@
+import { describe, expect, it } from "@jest/globals";
+
 import { selectOracle, scoreCard } from "@/services/oracleEngine";
 import type { OracleCard, Remedy, OracleSelectionInput } from "@/types/oracle";
 
