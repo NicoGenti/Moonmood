@@ -1,3 +1,5 @@
+import type { MoonPhaseName } from "@/types/astrology";
+
 export type MoodScore = number & { readonly __brand: "MoodScore" };
 
 export function toMoodScore(value: number): MoodScore {
@@ -14,6 +16,9 @@ export interface MoodLog {
   moodScore: MoodScore;
   note?: string;
   createdAt: number;
+  moonPhase?: MoonPhaseName;
+  oracleCardId?: string;
+  oracleRemedyId?: string;
 }
 
 export type MoodEntry = Omit<MoodLog, "id" | "createdAt">;
