@@ -8,7 +8,7 @@ import { MoodHistory } from "@/components/mood/MoodHistory";
 import { ReadOnlyView } from "@/components/mood/ReadOnlyView";
 import { useDailySession } from "@/hooks/useDailySession";
 import { useMoodScore, useSetMoodScore } from "@/hooks/useMoodStore";
-import { getGreeting, getMoodQuestion, getMoodLevel } from "@/lib/moodConfig";
+import { getGreeting, getMoodQuestion } from "@/lib/moodConfig";
 
 export default function Home() {
   const moodScore = useMoodScore();
@@ -17,7 +17,6 @@ export default function Home() {
 
   const greeting = getGreeting();
   const moodQuestion = getMoodQuestion();
-  const moodLevel = getMoodLevel(moodScore);
 
   return (
     <AnimatePresence mode="wait">
@@ -64,21 +63,6 @@ export default function Home() {
             <h1 className="font-display text-3xl font-bold tracking-tight text-white">
               {moodQuestion}
             </h1>
-          </div>
-
-          {/* Display emotivo */}
-          <div className="text-center">
-            <motion.div
-              className="text-7xl mb-2"
-              key={moodLevel.emoji}
-              initial={{ scale: 0.8, opacity: 0.6 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            >
-              {moodLevel.emoji}
-            </motion.div>
-            <div className="text-lg font-semibold text-white">{moodLevel.label}</div>
-            <div className="text-sm text-white/50 mt-0.5">{Math.round(moodScore * 10) / 10}/10</div>
           </div>
 
           <div className="w-full max-w-sm">
