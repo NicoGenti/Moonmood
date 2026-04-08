@@ -183,8 +183,18 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
         dragMomentum={false}
         style={{ x, width: BLOB_SIZE, height: BLOB_SIZE, touchAction: "none" }}
         className="absolute top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
-        animate={{ scale: isDragging ? 1.12 : 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        animate={
+          isDragging
+            ? { scale: 1.12 }
+            : hasInteracted
+              ? { scale: 1 }
+              : { scale: [1, 1.06, 1] }
+        }
+        transition={
+          isDragging || hasInteracted
+            ? { type: "spring", stiffness: 300, damping: 20 }
+            : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+        }
         onPointerDown={(event) => {
           dragControls.start(event);
         }}
@@ -200,6 +210,18 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
           lastHapticScore.current = -1;
         }}
       >
+        {/* Glow ring — radial halo in mood color */}
+        <motion.div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            background: blobColor,
+            filter: "blur(14px)",
+            opacity: 0.3,
+          }}
+          whileHover={{ opacity: 0.45 }}
+          whileFocus={{ opacity: 0.45 }}
+        />
+
         {/* Label flottante sopra il blob */}
         <AnimatePresence>
           {isDragging && (
