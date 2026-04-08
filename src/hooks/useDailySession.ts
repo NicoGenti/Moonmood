@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useMoodScore, useSetMoodScore } from "@/hooks/useMoodStore";
+import { buildDailySessionSavePayload } from "@/hooks/dailySessionSavePayload";
 import { getTodayLog, saveMoodLog, getAllLogs } from "@/services/db";
 import { getMoonPhase } from "@/services/moonPhase";
 import { calculateMoodTrend } from "@/services/moodTrend";
@@ -63,11 +64,14 @@ export function useDailySession(): UseDailySessionReturn {
       const today = getTodayDateString();
 
       // Step 1: Save the base mood log
-      const savedLog = await saveMoodLog({
-        date: today,
-        moodScore,
-        note: note.trim() || undefined,
-      });
+      const savedLog = await saveMoodLog(
+        buildDailySessionSavePayload({
+          sessionState,
+          date: today,
+          moodScore,
+          note,
+        }),
+      );
 
       setSessionState({ status: "saved", log: savedLog });
       setNote(savedLog.note ?? "");
