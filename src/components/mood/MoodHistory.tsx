@@ -51,7 +51,7 @@ export function MoodHistory() {
               {group.items.map((item) => (
                 <Link
                   key={item.date}
-                  href={`/history/${item.date}`}
+                  href={`/history?date=${item.date}`}
                   className="block rounded-xl border border-white/10 bg-black/10 px-3 py-2 transition-colors hover:bg-white/10"
                 >
                   <div className="flex items-center justify-between gap-2">
