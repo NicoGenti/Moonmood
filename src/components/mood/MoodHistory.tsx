@@ -5,11 +5,26 @@ import { getMoodLevel } from "@/lib/moodConfig";
 import { useMoodHistory } from "@/hooks/useMoodHistory";
 
 export function MoodHistory() {
-  const { days, streak, isLoading } = useMoodHistory();
+  const { groups, isLoading } = useMoodHistory();
 
   if (isLoading) {
     return null;
   }
+
+  const entries = groups
+    .flatMap((group) => group.items)
+    .slice(0, 7)
+    .map((item) => {
+      const d = new Date(`${item.date}T00:00:00`);
+      return {
+        date: item.date,
+        dayLabel: ["Do", "Lu", "Ma", "Me", "Gi", "Ve", "Sa"][d.getDay()],
+        score: item.moodScore,
+      };
+    })
+    .reverse();
+
+  const streak = 0;
 
   const todayDate = new Date().toLocaleDateString("sv-SE");
 
@@ -29,7 +44,7 @@ export function MoodHistory() {
 
       {/* Dots */}
       <div className="flex items-end justify-between gap-1">
-        {days.map((day, index) => {
+        {entries.map((day, index) => {
           const isToday = day.date === todayDate;
           const moodLevel = day.score !== null ? getMoodLevel(day.score) : null;
 
