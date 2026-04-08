@@ -11,6 +11,11 @@ const moodLogSchema = z.object({
   note: z.string().max(280).optional(),
 });
 
+const storedMoodLogSchema = moodLogSchema.extend({
+  id: z.string().uuid(),
+  createdAt: z.number().int().positive(),
+});
+
 class MoonmoodDB extends Dexie {
   dailyLogs!: Table<MoodLog>;
 
@@ -35,7 +40,17 @@ function readLocalStorageLogs(): MoodLog[] {
   }
 
   try {
-    return JSON.parse(raw) as MoodLog[];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.reduce<MoodLog[]>((acc, item) => {
+      const result = storedMoodLogSchema.safeParse(item);
+      if (result.success) {
+        acc.push(result.data as MoodLog);
+      }
+      return acc;
+    }, []);
   } catch {
     return [];
   }
