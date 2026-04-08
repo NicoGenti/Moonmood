@@ -6,6 +6,7 @@ import {
   useDragControls,
   useMotionValue,
   useMotionValueEvent,
+  useTransform,
 } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMoodLevel } from "@/lib/moodConfig";
@@ -13,15 +14,9 @@ import { getMoodLevel } from "@/lib/moodConfig";
 const MIN_SCORE = 0;
 const MAX_SCORE = 10;
 const DEFAULT_SCORE = 5;
-const BLOB_SIZE = 56;
-
-const BLOB_PATHS = [
-  "M 30 0 C 55 5 55 55 30 60 C 5 55 5 5 30 0 Z",
-  "M 30 5 C 50 0 58 40 30 58 C 5 40 8 8 30 5 Z",
-  "M 30 -5 C 58 8 52 52 30 62 C 8 52 2 8 30 -5 Z",
-  "M 30 2 C 52 2 57 52 30 60 C 3 54 7 6 30 2 Z",
-  "M 30 -2 C 57 6 54 49 30 61 C 4 54 0 11 30 -2 Z",
-];
+const PILL_WIDTH = 52;
+const PILL_HEIGHT = 32;
+const HIT_TARGET_HEIGHT = 44;
 
 export interface LiquidSliderProps {
   value: number;
@@ -71,8 +66,6 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
       return false;
     }
   });
-  const [idleStep, setIdleStep] = useState(0);
-  const [dragStep, setDragStep] = useState(0);
   const lastHapticScore = useRef<number>(-1);
 
   const scoreFromX = useMemo(() => {
@@ -91,13 +84,32 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
   const colorMix = effectiveScore / MAX_SCORE;
   const blobColor = blendHex("#4682b4", "#8b5cf6", colorMix);
   const moodLevel = getMoodLevel(effectiveScore);
+  const lowMoodEmoji = getMoodLevel(MIN_SCORE).emoji;
+  const highMoodEmoji = getMoodLevel(MAX_SCORE).emoji;
+  const fillWidth = useTransform(x, (latestX) => {
+    const clampedX = Math.min(Math.max(0, latestX), maxDragX);
+    return clampedX + PILL_WIDTH / 2;
+  });
 
-  // Percentuale posizione thumb per calcolare la track colorata
-  const thumbPercent = maxDragX > 0 ? (x.get() / maxDragX) * 100 : (effectiveScore / MAX_SCORE) * 100;
+  const hideHint = () => {
+    if (!showHint) return;
+    setShowHint(false);
+    try {
+      localStorage.setItem("lslider-hint-seen", "1");
+    } catch {
+      // ignore storage errors
+    }
+  };
 
-  const activePath = isDragging
-    ? BLOB_PATHS[dragStep % BLOB_PATHS.length]
-    : BLOB_PATHS[idleStep % BLOB_PATHS.length];
+  const applyKeyboardScore = (rawScore: number) => {
+    const nextScore = clampScore(rawScore);
+    if (nextScore !== effectiveScore) {
+      onValueChange(nextScore);
+      navigator.vibrate?.(8);
+    }
+    if (!hasInteracted) setHasInteracted(true);
+    hideHint();
+  };
 
   useEffect(() => {
     if (!trackRef.current) {
@@ -109,7 +121,7 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
         return;
       }
 
-      const nextMaxDrag = Math.max(0, trackRef.current.clientWidth - BLOB_SIZE);
+      const nextMaxDrag = Math.max(0, trackRef.current.clientWidth - PILL_WIDTH);
       setMaxDragX(nextMaxDrag);
     };
 
@@ -134,14 +146,6 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
     x.set(nextX);
   }, [maxDragX, value, x]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIdleStep((current) => current + 1);
-    }, 2400);
-
-    return () => clearInterval(interval);
-  }, []);
-
   useMotionValueEvent(x, "change", (latestX) => {
     if (!isDragging || maxDragX <= 0) {
       return;
@@ -162,18 +166,20 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
   return (
     <div
       ref={trackRef}
-      className={`relative h-20 w-full select-none ${className ?? ""}`}
+      className={`relative h-28 w-full select-none ${className ?? ""}`}
       style={{ touchAction: "none" }}
       aria-label="Selettore umore"
     >
-      {/* Track base — 4px rounded, proper slider affordance */}
-      <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/10" />
+      <div className="absolute inset-x-0 top-1 flex items-center justify-between text-sm text-white/40">
+        <span>{lowMoodEmoji}</span>
+        <span>{highMoodEmoji}</span>
+      </div>
 
-      {/* Track filled portion — mood color gradient up to thumb */}
-      <div
-        className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full transition-all duration-75"
+      <div className="absolute left-0 right-0 top-10 h-1.5 -translate-y-1/2 rounded-full bg-white/10" />
+      <motion.div
+        className="absolute top-10 left-0 h-1.5 -translate-y-1/2 rounded-full"
         style={{
-          width: `calc(${thumbPercent}% + ${BLOB_SIZE / 2}px)`,
+          width: fillWidth,
           background: `linear-gradient(to right, #4682b4, ${blobColor})`,
           opacity: 0.75,
         }}
@@ -190,81 +196,117 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
         dragConstraints={{ left: 0, right: maxDragX }}
         dragElastic={0}
         dragMomentum={false}
-        style={{ x, width: BLOB_SIZE, height: BLOB_SIZE, touchAction: "none" }}
-        className="absolute top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
+        tabIndex={0}
+        style={{ x, width: PILL_WIDTH, height: HIT_TARGET_HEIGHT, touchAction: "none" }}
+        className="absolute top-10 -translate-y-1/2 cursor-grab active:cursor-grabbing focus-visible:outline-none"
+        aria-valuetext={`${moodLevel.label} ${effectiveScore}`}
         animate={
           isDragging
-            ? { scale: 1.12 }
+            ? { scale: 1.08 }
             : hasInteracted
               ? { scale: 1 }
-              : { scale: [1, 1.06, 1] }
+              : { scale: 1 }
         }
         transition={
           isDragging || hasInteracted
             ? { type: "spring", stiffness: 300, damping: 20 }
-            : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+            : { type: "spring", stiffness: 280, damping: 24 }
         }
         onPointerDown={(event) => {
           dragControls.start(event);
         }}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+            event.preventDefault();
+            applyKeyboardScore(effectiveScore + 1);
+            return;
+          }
+
+          if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+            event.preventDefault();
+            applyKeyboardScore(effectiveScore - 1);
+            return;
+          }
+
+          if (event.key === "Home") {
+            event.preventDefault();
+            applyKeyboardScore(MIN_SCORE);
+            return;
+          }
+
+          if (event.key === "End") {
+            event.preventDefault();
+            applyKeyboardScore(MAX_SCORE);
+          }
+        }}
         onDragStart={() => {
           setIsDragging(true);
           if (!hasInteracted) setHasInteracted(true);
-          if (showHint) {
-            setShowHint(false);
-            try { localStorage.setItem("lslider-hint-seen", "1"); } catch { /* ignore */ }
-          }
-        }}
-        onDrag={() => {
-          setDragStep((current) => current + 1);
+          hideHint();
         }}
         onDragEnd={() => {
           setIsDragging(false);
           lastHapticScore.current = -1;
         }}
       >
-        {/* Glow ring — radial halo in mood color */}
         <motion.div
-          className="absolute inset-0 rounded-full pointer-events-none"
+          className="absolute left-1/2 top-1/2 h-8 w-13 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
           style={{
             background: blobColor,
             filter: "blur(14px)",
             opacity: 0.3,
           }}
-          whileHover={{ opacity: 0.45 }}
-          whileFocus={{ opacity: 0.45 }}
+          animate={
+            isDragging
+              ? { opacity: 0.5 }
+              : { opacity: [0.3, 0.5, 0.3] }
+          }
+          transition={
+            isDragging
+              ? { duration: 0.2 }
+              : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+          }
         />
 
-        {/* Label flottante sopra il blob */}
-        <AnimatePresence>
-          {isDragging && (
-            <motion.div
-              key="drag-label"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: 0.15 }}
-              className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm pointer-events-none"
-            >
-              {effectiveScore} {moodLevel.emoji}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <svg viewBox="0 0 60 60" width={BLOB_SIZE} height={BLOB_SIZE} aria-hidden>
-          <defs>
-            <radialGradient id="liquid-slider-blob-gradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
-              <stop offset="62%" stopColor={blobColor} stopOpacity="0.9" />
-              <stop offset="100%" stopColor={blobColor} stopOpacity="0.35" />
-            </radialGradient>
-          </defs>
-          <path
-            d={activePath}
-            fill="url(#liquid-slider-blob-gradient)"
-          />
-        </svg>
+        <div
+          className="absolute left-1/2 top-1/2 flex h-8 w-[52px] -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-1 rounded-full border border-white/20 text-white backdrop-blur-md"
+          style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
+          aria-hidden
+        >
+          <span className="text-sm leading-none">{moodLevel.emoji}</span>
+          <span className="text-xs font-semibold leading-none">{effectiveScore}</span>
+        </div>
       </motion.div>
+
+      <div className="absolute left-0 right-0 top-[50px] flex h-3 items-start">
+        {Array.from({ length: MAX_SCORE + 1 }).map((_, tick) => {
+          const isLandmark = tick === MIN_SCORE || tick === 5 || tick === MAX_SCORE;
+          return (
+            <span
+              key={tick}
+              className="absolute -translate-x-1/2"
+              style={{ left: `${(tick / MAX_SCORE) * 100}%` }}
+            >
+              <span
+                className={`block w-px ${isLandmark ? "h-2.5 bg-white/25" : "h-1.5 bg-white/15"}`}
+              />
+            </span>
+          );
+        })}
+      </div>
+
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.p
+          key={moodLevel.label}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-medium text-white/60"
+        >
+          {moodLevel.label}
+        </motion.p>
+      </AnimatePresence>
 
       {/* First-visit hint */}
       <AnimatePresence>
