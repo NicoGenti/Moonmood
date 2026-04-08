@@ -316,7 +316,7 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
             animate={{ opacity: 0.55, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.4 }}
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs text-white/55 pointer-events-none select-none whitespace-nowrap"
+            className="absolute -bottom-6 sm:-bottom-7 left-1/2 w-screen -translate-x-1/2 text-center text-xs text-white/55 pointer-events-none select-none whitespace-nowrap"
           >
             ← scorri →
           </motion.p>
