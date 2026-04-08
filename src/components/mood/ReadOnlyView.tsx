@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Transition, Variants } from "framer-motion";
 import { getMoodLevel, getEncouragingMessage } from "@/lib/moodConfig";
@@ -113,7 +114,16 @@ export function ReadOnlyView({ log, onEdit }: ReadOnlyViewProps) {
           Modifica
         </motion.button>
 
-        {/* Storia degli ultimi 7 giorni */}
+        <motion.div variants={item}>
+          <Link
+            href="/history"
+            className="inline-flex rounded-full border border-surface-20 bg-surface-10 px-5 py-2.5 text-sm text-white/75 transition-colors hover:bg-surface-20 hover:text-white"
+          >
+            Rivedi lo storico
+          </Link>
+        </motion.div>
+
+        {/* Storia completa */}
         <motion.div variants={item} className="w-full">
           <MoodHistory />
         </motion.div>

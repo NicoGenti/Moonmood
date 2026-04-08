@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { LiquidSlider } from "@/components/mood/LiquidSlider";
 import { MoodNoteInput } from "@/components/mood/MoodNoteInput";
 import { SaveMoodButton } from "@/components/mood/SaveMoodButton";
@@ -81,6 +82,13 @@ export default function Home() {
           <div className="w-full max-w-sm">
             <MoodHistory />
           </div>
+
+          <Link
+            href="/history"
+            className="text-sm text-white/70 underline-offset-4 transition-colors hover:text-white hover:underline"
+          >
+            Apri lo storico completo
+          </Link>
         </motion.main>
       )}
     </AnimatePresence>
