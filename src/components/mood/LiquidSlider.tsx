@@ -61,6 +61,7 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
 
   const [maxDragX, setMaxDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [idleStep, setIdleStep] = useState(0);
   const [dragStep, setDragStep] = useState(0);
   const lastHapticScore = useRef<number>(-1);
@@ -156,16 +157,16 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
       style={{ touchAction: "none" }}
       aria-label="Selettore umore"
     >
-      {/* Track base */}
-      <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-white/20" />
+      {/* Track base — 4px rounded, proper slider affordance */}
+      <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/10" />
 
-      {/* Track colorata fino alla posizione del thumb */}
+      {/* Track filled portion — mood color gradient up to thumb */}
       <div
-        className="absolute top-1/2 left-0 h-[2px] -translate-y-1/2 rounded-full transition-all duration-75"
+        className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full transition-all duration-75"
         style={{
           width: `calc(${thumbPercent}% + ${BLOB_SIZE / 2}px)`,
           background: `linear-gradient(to right, #4682b4, ${blobColor})`,
-          opacity: 0.7,
+          opacity: 0.75,
         }}
       />
 
@@ -189,6 +190,7 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
         }}
         onDragStart={() => {
           setIsDragging(true);
+          if (!hasInteracted) setHasInteracted(true);
         }}
         onDrag={() => {
           setDragStep((current) => current + 1);
@@ -222,11 +224,9 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
               <stop offset="100%" stopColor={blobColor} stopOpacity="0.35" />
             </radialGradient>
           </defs>
-          <motion.path
+          <path
             d={activePath}
             fill="url(#liquid-slider-blob-gradient)"
-            animate={{ d: activePath }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
           />
         </svg>
       </motion.div>
