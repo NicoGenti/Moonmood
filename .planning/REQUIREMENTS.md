@@ -300,3 +300,73 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - A "Preferiti" view lists all favorited items grouped by type, sorted by most recently saved
 - Removing a favorite (un-heart) deletes the record from the table
 - The favorites view is accessible from the settings page or a dedicated navigation entry
+
+---
+
+## Phase 6: Content Expansion (v2)
+
+### ANGEL-01 — Daily Angel Card with Image
+
+**Statement:** The app shall present a daily Angel card with an angel name, Italian description, and associated image, selected from a bundled seed dataset using mood and lunar phase context.
+
+**Acceptance criteria:**
+- A bundled `angel_cards_seed.json` contains at least 20 angel cards with `id`, Italian `name`, Italian `description`, `moodRange`, `moonPhases`, and `imagePath`
+- Angel card images are bundled as static assets under `public/images/angels/`
+- Selection uses a weighted engine similar to oracle cards (mood range filter, moon phase bonus, randomness from top candidates)
+- The Angel card is displayed in a dedicated section or card on the daily experience, with image, name, and description
+- The angel card result is persisted in the daily MoodLog for deterministic replay
+
+---
+
+### TOTEM-01 — Daily Animal Totem with Image
+
+**Statement:** The app shall present a daily Animal Totem with an animal name, Italian symbolic meaning, and associated image, selected from a bundled seed dataset with mood-aware logic.
+
+**Acceptance criteria:**
+- A bundled `animal_totem_seed.json` contains at least 20 animal totems with `id`, Italian `name`, Italian `meaning`, `moodRange`, and `imagePath`
+- Totem images are bundled as static assets under `public/images/totems/`
+- Selection uses mood range filtering with date-seeded randomness to ensure daily consistency
+- The Animal Totem is displayed with image, name, and meaning in a dedicated section
+- The totem result is persisted in the daily MoodLog for deterministic replay
+
+---
+
+### DREAM-01 — Dream Diary (Text)
+
+**Statement:** Users shall be able to write daily dream diary entries as free text, stored in IndexedDB, with a dedicated browsable dream log view.
+
+**Acceptance criteria:**
+- A "Diario Sogni" entry point is accessible from the navigation or home page
+- The dream entry form accepts free-text Italian input with no character limit (but UI shows a reasonable max of 2000 chars)
+- Each dream entry is stored in a new Dexie table (`dreams`) with `id`, `date`, `text`, `createdAt`
+- A dream log view lists past entries sorted newest-first with date headers
+- Selecting a past dream entry opens a read-only detail view
+- Empty state shows an Italian message encouraging dream journaling
+
+---
+
+### LUNA-01 — Visual Lunar Cycle Strip with Photos
+
+**Statement:** The app shall display a visual strip showing the current month's moon phases with representative photos for each phase, highlighting today's phase.
+
+**Acceptance criteria:**
+- A horizontal scrollable strip displays all days of the current month with a small moon phase photo for each day
+- Today's phase is highlighted visually (border, glow, or enlarged)
+- Moon phase photos are bundled as static assets (8 photos, one per named phase)
+- Phase computation reuses the existing `astronomia`-based lunar service
+- The strip is accessible from the home page or a dedicated "Luna" section
+- Tapping a day in the strip shows a tooltip or detail with the phase name in Italian
+
+---
+
+### SHARE-01 — Social Sharing via Canvas-Generated Image
+
+**Statement:** Users shall be able to generate a shareable mood summary image (1:1 or 9:16 format) and share it via the Web Share API or download it.
+
+**Acceptance criteria:**
+- A "Condividi" button is available on the daily summary / oracle result view
+- Tapping the button generates a canvas-rendered image containing: mood score, emoji, oracle card name, date, and Moonmood branding
+- The user can choose between 1:1 (square, Instagram) and 9:16 (story) aspect ratios
+- On devices supporting the Web Share API, the native share sheet opens with the generated image
+- On unsupported devices, the image is downloaded as a PNG file
+- The generated image follows the app's aurora gradient visual style
