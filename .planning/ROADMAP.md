@@ -10,6 +10,10 @@ L'interfaccia è progettata **mobile-first** con touch targets e layout responsi
 - **v2**: Introduzione di backend (.NET 8), database (MongoDB), autenticazione utente e sync cloud
 - **v3**: App nativa iOS/Android (React Native + Expo) che condivide la logica di dominio con la web app
 
+**Scope:**
+- **v1 (Phases 1-5):** PWA frontend-only con persistenza locale, contenuti bundled, quick wins
+- **v2 (Phases 6-8):** Espansione contenuti, introduzione backend (.NET 8 + MongoDB), autenticazione, AI, diari wellness completi
+
 ## Phases
 
 **Phase Numbering:**
