@@ -232,3 +232,71 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - All features (mood logging, oracle reveal, history browsing, report viewing) work offline with no degradation
 - The service worker implements a cache-first strategy for static assets and a network-first strategy for any future API calls
 - Cache versioning ensures updated assets are fetched on subsequent visits when online
+
+## Phase 5: Quick Wins
+
+### ECO-01 — Eco del Giorno (Daily Aphorism in Home)
+
+**Statement:** The home page shall display a daily aphorism ("Eco del Giorno") selected from the existing bundled `aphorisms_seed.json`, rotating deterministically based on the current date.
+
+**Acceptance criteria:**
+- A dedicated "Eco del Giorno" card/section is visible on the home page below the mood input area
+- The aphorism is selected deterministically from `aphorisms_seed.json` using the current date as seed (same date = same aphorism)
+- The aphorism displays the Italian text and an optional attribution/source
+- The card is styled consistently with the existing glassmorphism design language
+- Tapping the aphorism card allows the user to mark it as a favorite (see FAV-01)
+
+---
+
+### STCZ-01 — Sticazzi (Daily Ironic Phrase)
+
+**Statement:** The home page shall display a daily ironic/humorous phrase ("Sticazzi") sourced from a new bundled seed dataset, providing lighthearted emotional relief.
+
+**Acceptance criteria:**
+- A new `sticazzi_seed.json` file is created under `src/data/` containing at least 30 Italian ironic/humorous phrases with unique IDs
+- A "Sticazzi" card/section appears on the home page, visually distinct from the Eco del Giorno
+- The phrase rotates daily using a deterministic date-based selection (same date = same phrase)
+- The card style matches the app's visual language but with a playful/ironic tone (e.g., different accent color)
+- Tapping the card allows the user to mark it as a favorite (see FAV-01)
+
+---
+
+### RPT-01 — Enhanced Report with Temporal Filters
+
+**Statement:** The report page shall support temporal range filters (7 days, 30 days, 90 days, all time) and display richer statistics including averages, streaks, trends, and distribution for the selected range.
+
+**Acceptance criteria:**
+- A filter bar at the top of the report page offers 4 temporal options: 7 giorni, 30 giorni, 90 giorni, Tutto
+- Changing the filter re-renders all statistics and charts for the selected range
+- Statistics include: average mood, longest positive streak (score >= 7), longest negative streak (score <= 3), overall trend direction
+- A bar or line chart visualizes mood scores over the selected period
+- The default selection is 7 giorni (matching current behavior) so existing experience is preserved
+- All data is sourced from local IndexedDB with no network dependency
+
+---
+
+### SET-01 — Settings Page
+
+**Statement:** A settings page shall be accessible from the app navigation, providing controls for language preference, notification toggles, and feature visibility flags.
+
+**Acceptance criteria:**
+- A "Impostazioni" page is reachable from the bottom navigation or a settings icon
+- Language setting shows "Italiano" as default (additional languages deferred to v2)
+- A notification toggle is present with Italian label; actual push notification implementation deferred to Phase 7 (toggle persisted locally as preference)
+- Feature flag toggles allow showing/hiding optional sections (e.g., Sticazzi ON/OFF, Eco del Giorno ON/OFF)
+- All settings are persisted in IndexedDB (or localStorage) and survive app restart
+- Settings page follows the existing glassmorphism card design pattern
+
+---
+
+### FAV-01 — Favorites System (Hearts on Oracle Cards and Aphorisms)
+
+**Statement:** Users shall be able to mark oracle cards, aphorisms, and sticazzi phrases as favorites via a heart icon, with favorites persisted locally and browsable in a dedicated list.
+
+**Acceptance criteria:**
+- A heart icon is displayed on oracle card views, Eco del Giorno, and Sticazzi cards
+- Tapping the heart toggles the favorite state with a brief animation feedback
+- Favorites are stored in a new Dexie table (`favorites`) with fields: `id`, `type` (oracle|aphorism|sticazzi), `contentId`, `savedAt`
+- A "Preferiti" view lists all favorited items grouped by type, sorted by most recently saved
+- Removing a favorite (un-heart) deletes the record from the table
+- The favorites view is accessible from the settings page or a dedicated navigation entry
