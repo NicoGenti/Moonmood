@@ -370,3 +370,89 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - On devices supporting the Web Share API, the native share sheet opens with the generated image
 - On unsupported devices, the image is downloaded as a PNG file
 - The generated image follows the app's aurora gradient visual style
+
+---
+
+## Phase 7: Backend & Architecture (v2)
+
+### AUTH-01 — User Authentication (Google/Apple OAuth + Guest)
+
+**Statement:** Users shall be able to sign in via Google or Apple OAuth, or continue as guest, with authenticated sessions enabling cloud features.
+
+**Acceptance criteria:**
+- Sign-in options for Google OAuth and Apple Sign-In are presented on a login/welcome screen
+- A "Continua come ospite" option allows using the app without authentication (local-only mode)
+- Authenticated sessions persist across app restarts using secure token storage
+- User profile information (name, email, avatar) is stored server-side in MongoDB
+- The backend is built on .NET 8 with RESTful API endpoints for auth flows
+- GDPR-compliant privacy policy is displayed and requires acceptance before first sign-in
+
+---
+
+### SYNC-01 — Cloud Backup and Sync
+
+**Statement:** Authenticated users' mood logs, favorites, dreams, and settings shall sync to cloud storage (MongoDB) with automatic backup and multi-device consistency.
+
+**Acceptance criteria:**
+- All local Dexie data (dailyLogs, favorites, dreams, settings) syncs to the user's MongoDB collection on save
+- Sync is bidirectional: changes on one device propagate to others on next app open
+- Conflict resolution uses last-write-wins with timestamp comparison
+- A "Backup" indicator in Settings shows the last successful sync time
+- Guest users see a prompt to sign in to enable backup, but can continue without it
+- Initial sign-in triggers a full upload of existing local data to cloud
+
+---
+
+### PUSH-01 — Push Notifications (Service Worker)
+
+**Statement:** The app shall send push notifications to remind users to log their mood, with configurable schedule and content.
+
+**Acceptance criteria:**
+- Push notification permission is requested after first mood save (not on app open) with Italian copy explaining the value
+- Default notification schedule: daily at 20:00 local time with the message "Come ti senti stasera?"
+- Users can change notification time and disable notifications entirely in Settings
+- Notifications are delivered via Service Worker push events, functional even when the app is closed
+- Tapping a notification opens the app to the mood input page
+- Backend sends push events via Web Push protocol to registered service workers
+
+---
+
+### AI-01 — AI-Powered Dream Interpretation and Insights
+
+**Statement:** The app shall use AI to interpret dream diary entries and generate personalized emotional insights based on mood history patterns.
+
+**Acceptance criteria:**
+- After saving a dream diary entry, an AI interpretation is generated and displayed below the dream text
+- Interpretations are in Italian, empathetic in tone, and reference symbols/themes from the dream text
+- A weekly AI insight summary analyzes mood patterns, dream themes, and lunar correlations
+- AI calls are made to a backend endpoint that proxies to an LLM service (e.g., OpenAI, Claude)
+- AI features degrade gracefully for guest/offline users: a message explains that AI requires sign-in and connectivity
+- AI-generated content is clearly labeled as AI-generated
+
+---
+
+### MULTI-01 — Multiple Mood Logs Per Day
+
+**Statement:** Users shall be able to log mood multiple times per day, with all entries visible on an interactive sinusoidal chart showing intra-day emotional variation.
+
+**Acceptance criteria:**
+- The daily log schema is refactored: `date` is no longer a unique key; each log has a unique `id` + `datetime` timestamp
+- The mood input page allows creating a new log even if one already exists for today
+- All daily logs are listed chronologically on the home page's daily view
+- An interactive sinusoidal chart (SVG or canvas) plots all mood scores for the selected day/period as a smooth curve
+- Tapping a point on the sinusoidal chart opens the detail for that specific log entry
+- Existing single-log data migrates cleanly: old entries get a `datetime` equal to `date + T12:00:00`
+
+---
+
+### MUSIC-01 — Adaptive Background Music
+
+**Statement:** The app shall play ambient background music that dynamically adapts its mood/intensity based on the current mood score, toggleable in Settings.
+
+**Acceptance criteria:**
+- Background music begins playing (if enabled) when the user enters the mood input flow
+- Music mood transitions smoothly as the mood slider value changes (low mood = calm/melancholic, high mood = uplifting/ethereal)
+- Music is implemented via Web Audio API with crossfading between mood-mapped audio layers
+- A music ON/OFF toggle is available in Settings (default: OFF)
+- Audio assets are bundled locally (no streaming dependency) with at least 3 mood-mapped audio loops
+- Music respects device silent/vibrate mode and pauses when the app goes to background
