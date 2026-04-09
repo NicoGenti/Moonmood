@@ -456,3 +456,233 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - A music ON/OFF toggle is available in Settings (default: OFF)
 - Audio assets are bundled locally (no streaming dependency) with at least 3 mood-mapped audio loops
 - Music respects device silent/vibrate mode and pauses when the app goes to background
+
+## Phase 8: Diaries & Wellness (v2)
+
+### TAROT-01 — Jodorowsky Tarot Reading with Imagery
+
+**Statement:** Users shall receive a daily tarot card reading based on the Jodorowsky Marseille tarot tradition, with authentic card imagery and Italian interpretive text.
+
+**Acceptance criteria:**
+- A bundled `tarot_jodorowsky_seed.json` contains all 22 Major Arcana with `id`, Italian `name`, Italian `interpretation`, `moodRange`, `moonPhases`, `imagePath`, and `keywords`
+- Tarot card images are bundled as static assets under `public/images/tarot/`
+- Selection uses the weighted oracle engine pattern (mood range filter, moon phase bonus, top-N random pick)
+- The tarot card is displayed with a dedicated flip/reveal animation distinct from the oracle card
+- The tarot reading result is persisted in the daily MoodLog alongside the oracle card
+- The tarot section is togglable in Settings (default: ON)
+
+---
+
+### DIARY-MENS-01 — Menstrual Cycle Diary
+
+**Statement:** Users shall be able to track menstrual cycle data including period start/end dates, symptoms, and flow intensity, with a calendar visualization and trend analysis.
+
+**Acceptance criteria:**
+- A "Diario Ciclo" section is accessible from navigation with a monthly calendar view
+- Users can mark period start and end dates by tapping calendar days
+- Each day allows logging flow intensity (light, medium, heavy) and common symptoms (cramps, headache, fatigue, mood swings) via Italian-labeled toggles
+- Cycle data is stored in a Dexie table (`menstrualDiary`) with `date`, `flowIntensity`, `symptoms[]`, `notes`
+- A trend view shows average cycle length, predicted next period, and symptom frequency over the last 6 cycles
+- All data remains local-only unless cloud sync is enabled (Phase 7)
+
+---
+
+### DIARY-THER-01 — Therapeutic Diary (Medications/Supplements)
+
+**Statement:** Users shall be able to log daily medication and supplement intake with dosage, time, and optional notes, with a chronological browsable log.
+
+**Acceptance criteria:**
+- A "Diario Terapeutico" section allows adding medication/supplement entries with: name, dosage, time taken, optional note
+- Entries are stored in a Dexie table (`therapeuticDiary`) with `id`, `date`, `name`, `dosage`, `time`, `note`
+- A daily view shows all logged medications/supplements for the current day
+- A history view lists past entries grouped by date, with the ability to see what was taken on any given day
+- Users can create recurring medication templates (name + dosage saved for quick re-entry)
+- Italian labels throughout (e.g., "Farmaco", "Dosaggio", "Ora di assunzione")
+
+---
+
+### DIARY-INTE-01 — Intestinal Health Diary
+
+**Statement:** Users shall be able to track daily intestinal health with stool characteristics, digestive symptoms, and food triggers, stored locally with pattern detection.
+
+**Acceptance criteria:**
+- A "Diario Intestinale" section allows daily logging of: stool type (Bristol scale 1-7), digestive symptoms (bloating, pain, nausea, etc.), food triggers (free text)
+- Entries are stored in a Dexie table (`intestinalDiary`) with `id`, `date`, `bristolType`, `symptoms[]`, `triggers`, `note`
+- A weekly/monthly summary shows symptom frequency and Bristol scale distribution
+- Pattern detection highlights correlations between food triggers and symptoms over time
+- Italian labels and Bristol scale descriptions in Italian
+
+---
+
+### WHISPER-01 — Il Sussurro (Voice Journal)
+
+**Statement:** Users shall be able to record voice journal entries ("Il Sussurro") with playback capability and optional text transcription.
+
+**Acceptance criteria:**
+- A "Il Sussurro" section provides a record button for voice capture via MediaRecorder API
+- Recordings are stored as audio blobs in a Dexie table (`voiceJournal`) with `id`, `date`, `audioBlob`, `duration`, `transcription?`
+- A journal view lists past recordings with date, duration, and play button
+- Playback uses native HTML5 audio controls
+- Optional transcription via Web Speech API (if available) is offered after recording, with the text editable by the user
+- A "Scrivi invece" fallback allows text-only entry if microphone access is denied
+
+---
+
+### MTC-01 — Traditional Chinese Medicine (TCM) Daily Guidance
+
+**Statement:** The app shall provide daily TCM-inspired guidance (meridian focus, element association, dietary suggestion) based on the current mood and lunar phase.
+
+**Acceptance criteria:**
+- A bundled `tcm_seed.json` contains entries mapping mood ranges and moon phases to: meridian of the day, associated element (Wood/Fire/Earth/Metal/Water), dietary suggestion, and brief Italian explanation
+- A "MTC" section displays today's TCM guidance with Italian text and a simple illustrative icon per element
+- Content selection follows the same mood + lunar phase weighting pattern used by oracle cards
+- The section is togglable in Settings (default: ON)
+
+---
+
+### CHAKRA-01 — Chakra Focus of the Day
+
+**Statement:** The app shall suggest a chakra to focus on based on the current mood score, with Italian name, description, color, and a brief balancing practice.
+
+**Acceptance criteria:**
+- A bundled `chakra_seed.json` maps mood score ranges to the 7 primary chakras with: Italian `name`, `description`, `color`, `practice` (brief balancing exercise in Italian)
+- A "Chakra" section displays today's suggested chakra with its color, name, description, and practice
+- The chakra suggestion is deterministic for a given mood score (same mood = same chakra)
+- Visual presentation uses the chakra's characteristic color as an accent
+
+---
+
+### AURA-01 — Aura Reading
+
+**Statement:** The app shall generate a daily aura color reading based on mood score and recent emotional trend, with Italian interpretation.
+
+**Acceptance criteria:**
+- A bundled `aura_seed.json` maps mood + trend combinations to aura colors with Italian `colorName`, `meaning`, and `advice`
+- An "Aura" section displays today's aura as a colored gradient circle with interpretation text
+- Aura color selection considers both the current mood score and the 7-day trend direction
+- The reading is presented in warm, empathetic Italian language
+
+---
+
+### MEDIT-01 — Guided Meditation Suggestions
+
+**Statement:** The app shall suggest a brief guided meditation practice based on the current mood, with Italian instructions and an optional timer.
+
+**Acceptance criteria:**
+- A bundled `meditation_seed.json` contains at least 15 meditation practices with: `id`, `moodRange`, Italian `title`, Italian `instructions` (step-by-step), `durationMinutes`
+- A "Meditazione" section shows today's suggested practice based on mood score
+- An optional countdown timer (1, 3, 5, 10 minutes) accompanies the practice instructions
+- The timer shows elapsed time and plays a gentle chime on completion
+- Instructions are presented as numbered steps in Italian, not as a wall of text
+
+---
+
+### STONE-01 — Crystal/Gemstone of the Day
+
+**Statement:** The app shall suggest a daily crystal or gemstone aligned with the current mood and lunar phase, with Italian name, properties, and usage guidance.
+
+**Acceptance criteria:**
+- A bundled `stones_seed.json` contains at least 20 crystals/gemstones with: `id`, Italian `name`, `properties`, `usage`, `moodRange`, `moonPhases`
+- A "Pietra" section displays today's suggested stone with Italian text
+- Selection uses mood range + moon phase weighted engine
+- The section is togglable in Settings (default: ON)
+
+---
+
+### RITUAL-01 — Lunar Rituals
+
+**Statement:** The app shall suggest lunar rituals appropriate for the current moon phase, with Italian instructions and recommended timing.
+
+**Acceptance criteria:**
+- A bundled `rituals_seed.json` maps each of the 8 moon phases to at least 2 rituals with: `id`, Italian `title`, Italian `instructions`, `moonPhase`, `timing` (best time of day)
+- A "Rituali Lunari" section shows rituals matching today's moon phase
+- Rituals include step-by-step Italian instructions
+- Special emphasis on New Moon and Full Moon rituals (more detailed content)
+
+---
+
+### RPT-MAP-01 — Temporal Map (Colored Nebulae)
+
+**Statement:** The report section shall include a "Mappa Temporale" visualization that renders positive and negative emotional moments as colored nebulae on a timeline.
+
+**Acceptance criteria:**
+- A canvas or SVG-rendered timeline shows mood entries as colored nebula shapes
+- Warm/bright nebulae represent high mood scores; cool/dark nebulae represent low scores
+- Nebula size reflects the emotional intensity (distance from neutral 5)
+- The timeline is horizontally scrollable across the selected time range
+- Italian labels for time axis and hover/tap tooltips showing date and mood score
+
+---
+
+### RPT-CONST-01 — Wellness Constellation
+
+**Statement:** The report section shall include a "Costellazione del Benessere" that maps wellness dimensions (mood, sleep, dreams, chakra, etc.) as stars in an interactive constellation.
+
+**Acceptance criteria:**
+- A star-field visualization shows each tracked wellness dimension as a star
+- Star brightness/size reflects the health of that dimension over the selected period
+- Connecting lines form constellation patterns between correlated dimensions
+- Italian dimension labels and interactive tap-to-detail on each star
+- Graceful degradation: dimensions with no data show as dim/inactive stars
+
+---
+
+### RPT-POWER-01 — Power Words
+
+**Statement:** The report section shall extract and display "Power Words" — the most frequently used positive words from the user's mood notes during their best days.
+
+**Acceptance criteria:**
+- Text analysis scans mood notes from entries with score >= 7 over the selected period
+- The most frequent meaningful words (excluding stop words) are displayed as an Italian word cloud
+- At least the top 10 power words are shown with relative frequency weighting
+- Tapping a word shows the dates/entries where it appeared
+
+---
+
+### RPT-GREEN-01 — Green Heart Method
+
+**Statement:** The report section shall include a "Green Heart Method" feature that curates the user's own most uplifting entries as a self-generated motivational collection.
+
+**Acceptance criteria:**
+- The system identifies entries with mood score >= 8 and non-empty notes as "green heart" entries
+- These entries are presented as a curated card collection with Italian motivational framing
+- Users can manually promote any entry to "green heart" status via a heart icon
+- A dedicated "Il Tuo Cuore Verde" view shows all green heart entries for self-reflection
+
+---
+
+### RPT-ASTRAL-01 — Astral Synchrony
+
+**Statement:** The report section shall show an "Astral Synchrony" visualization correlating mood patterns with lunar phase cycles over time.
+
+**Acceptance criteria:**
+- A dual-axis chart overlays mood scores (line) with moon phase progression (icons/curve) over the selected period
+- Visual correlation highlights periods where mood and lunar phase move in sync
+- Italian annotations explain notable synchrony patterns (e.g., "I tuoi momenti migliori coincidono con la Luna Piena")
+- The chart is interactive with tap-to-detail on individual data points
+
+---
+
+### RPT-LIGHT-01 — Ricorda la Tua Luce (Remember Your Light)
+
+**Statement:** A dedicated "Ricorda la Tua Luce" button shall be available during difficult moments, presenting the user with their own best memories, power words, and green heart entries as emotional support.
+
+**Acceptance criteria:**
+- A prominent "Ricorda la Tua Luce" button appears on the home page when mood score is <= 3 or accessible from a dedicated section
+- Tapping it opens a curated, soothing view that shows: the user's top 3 happiest entries, their power words, and a random green heart quote
+- The view uses warm, soft design with gentle animations and Italian supportive copy
+- If no positive history exists yet, an Italian message of encouragement is shown instead
+- The experience is designed to be calming and supportive, not clinical
+
+---
+
+### TRANSIT-01 — Planetary Transits
+
+**Statement:** The app shall display current planetary transits with mood correlation insights, computed client-side or via API.
+
+**Acceptance criteria:**
+- A "Transiti Planetari" section shows current major planetary positions and aspects
+- Each transit includes an Italian description of its emotional/spiritual significance
+- Historical mood data is correlated with past transit data to show personal patterns (e.g., "Durante Mercurio retrogrado il tuo umore medio è stato 4.2")
+- Transit data is computed locally via ephemeris library or fetched from a backend API (Phase 7 dependency)
+- The section updates daily and highlights notable transits (retrogrades, conjunctions, oppositions)
