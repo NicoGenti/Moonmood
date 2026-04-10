@@ -303,6 +303,21 @@ Each entry provides an authoritative requirement statement and acceptance criter
 
 ---
 
+### PRIV-01 — Privacy Information Page (Local-Only)
+
+**Statement:** A privacy information page shall be accessible from Settings and clearly explain that Moonmood v1 stores user data locally on-device without server-side collection.
+
+**Acceptance criteria:**
+- A "Privacy" page is reachable from the Settings page
+- The page states the data controller identity and contact email
+- The page lists local data categories: mood logs, notes, oracle identifiers, favorites, settings
+- The page states data is stored only in IndexedDB/localStorage on the user's device
+- The page states no analytics, no tracking cookies, and no backend data collection are used in v1
+- A "Cancella tutti i dati" action exists in Settings with explicit confirmation and wipes all local stored app data
+- Privacy page copy is in Italian
+
+---
+
 ## Phase 6: Content Expansion (v2)
 
 ### ANGEL-01 — Daily Angel Card with Image
@@ -386,6 +401,81 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - User profile information (name, email, avatar) is stored server-side in MongoDB
 - The backend is built on .NET 8 with RESTful API endpoints for auth flows
 - GDPR-compliant privacy policy is displayed and requires acceptance before first sign-in
+
+---
+
+### GDPR-01 — Privacy Policy and Cookie Policy
+
+**Statement:** Before first sign-in, the app shall present an Italian privacy policy compliant with GDPR Art. 13/14 and require explicit acceptance.
+
+**Acceptance criteria:**
+- Privacy policy includes controller identity, contact, data categories, legal bases, retention, and user rights
+- Third-party processors are disclosed (auth providers, database host, LLM provider where applicable)
+- Policy explains complaint route to Garante per la protezione dei dati personali
+- Cookie policy clarifies only essential app/auth storage is used and no tracking cookies are used by default
+- Policy is accessible from Settings at any time after sign-in
+
+---
+
+### GDPR-02 — Consent Management Service
+
+**Statement:** The app shall maintain explicit, auditable, purpose-based consent records and enforce consent gates for sensitive processing.
+
+**Acceptance criteria:**
+- Consent records are stored with fields including purpose key, granted/revoked state, timestamp, and version
+- Consent purposes include AI processing and health-related processing categories
+- Sensitive features are blocked until the matching consent is granted
+- Users can revoke each consent independently in Settings
+- Revocation disables associated features and triggers corresponding data handling behavior
+
+---
+
+### GDPR-03 — Right to Erasure (Account Deletion)
+
+**Statement:** Authenticated users shall be able to permanently delete their account and associated personal data.
+
+**Acceptance criteria:**
+- Settings includes an "Elimina il mio account" action with confirmation flow
+- Deletion removes server-side user data and local data associated with the account
+- OAuth/session credentials are revoked/invalidated during deletion flow
+- User receives clear completion feedback once deletion is finalized
+
+---
+
+### GDPR-04 — Data Portability Export
+
+**Statement:** Authenticated users shall be able to export their data in a machine-readable format.
+
+**Acceptance criteria:**
+- Settings includes a "Scarica i tuoi dati" action
+- Export includes core datasets (logs, notes, favorites, diary data, settings, consent metadata)
+- Export is downloadable as a ZIP containing structured JSON files
+- Export flow provides loading/progress feedback and completion status
+
+---
+
+### GDPR-05 — AI Processor Transparency and Consent
+
+**Statement:** AI features shall require explicit opt-in consent and transparent disclosure of third-party processing.
+
+**Acceptance criteria:**
+- Before AI use, users are shown provider identity, data categories sent, and retention implications
+- AI features remain disabled until explicit AI consent is granted
+- If provider materially changes, users are prompted to re-consent
+- AI-generated outputs are clearly labeled as AI-generated
+
+---
+
+### TOOL-01 — Requirements to GitHub Issues Sync Script
+
+**Statement:** A script shall sync requirements from `.planning/REQUIREMENTS.md` to GitHub Issues for tracking.
+
+**Acceptance criteria:**
+- Script parses requirement IDs, titles, and acceptance criteria
+- Script creates or updates one GitHub Issue per requirement ID
+- Issues are labeled by phase and domain (e.g., `phase:7`, `gdpr`)
+- Script is idempotent and avoids duplicate issues on repeated runs
+- Script is documented with usage and required environment variables
 
 ---
 
@@ -525,6 +615,19 @@ Each entry provides an authoritative requirement statement and acceptance criter
 - Playback uses native HTML5 audio controls
 - Optional transcription via Web Speech API (if available) is offered after recording, with the text editable by the user
 - A "Scrivi invece" fallback allows text-only entry if microphone access is denied
+
+---
+
+### GDPR-06 — Granular Health Data Consent per Diary
+
+**Statement:** Each health-sensitive diary feature shall require independent explicit consent before first use, with independent revocation controls.
+
+**Acceptance criteria:**
+- Separate consent is required for menstrual, therapeutic, intestinal, and voice diary processing
+- First access to each diary shows a dedicated consent gate explaining data category and purpose
+- If consent is denied, the feature remains locked with explanatory UI
+- Consent can be revoked independently from Settings for each diary category
+- On revocation, users are offered deletion of the corresponding diary dataset
 
 ---
 

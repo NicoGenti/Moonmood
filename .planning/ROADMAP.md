@@ -102,7 +102,7 @@ Plans:
 ### Phase 5: Quick Wins
 **Goal**: Surface existing bundled content (aphorisms, ironic phrases) in the home experience, enhance reports with temporal filters, add a settings page and a favorites system — all within the current local-first PWA architecture
 **Depends on**: Phase 4
-**Requirements**: ECO-01, STCZ-01, RPT-01, SET-01, FAV-01
+**Requirements**: ECO-01, STCZ-01, RPT-01, SET-01, FAV-01, PRIV-01
 **Success Criteria** (what must be TRUE):
   1. The home page displays a daily aphorism ("Eco del Giorno") sourced from the existing aphorisms_seed.json
   2. The home page displays a daily ironic phrase ("Sticazzi") from a new seed dataset
@@ -110,6 +110,7 @@ Plans:
   4. A settings page is accessible from navigation with language, notification toggles, and feature flags
   5. Users can mark oracle cards and aphorisms as favorites (heart icon), persisted in IndexedDB
   6. Favorite entries are browsable in a dedicated favorites list view
+  7. A Privacy page in Settings clearly explains local-only data handling and provides clear local data deletion action
 **Plans**: TBD
 
 ### Phase 6: Content Expansion (v2)
@@ -127,7 +128,7 @@ Plans:
 ### Phase 7: Backend & Architecture (v2)
 **Goal**: Introduce server-side infrastructure (.NET 8 + MongoDB) to enable user authentication, cloud backup/sync, push notifications, AI-powered features, multiple daily logs, and adaptive background music
 **Depends on**: Phase 6
-**Requirements**: AUTH-01, SYNC-01, PUSH-01, AI-01, MULTI-01, MUSIC-01
+**Requirements**: AUTH-01, SYNC-01, PUSH-01, AI-01, MULTI-01, MUSIC-01, GDPR-01, GDPR-02, GDPR-03, GDPR-04, GDPR-05, TOOL-01
 **Success Criteria** (what must be TRUE):
   1. Users can sign in via Google or Apple OAuth and optionally use the app as guest
   2. Mood logs and all local data sync to cloud storage with automatic backup
@@ -135,12 +136,16 @@ Plans:
   4. AI interprets dream diary entries and generates personalized emotional insights
   5. Users can log mood multiple times per day, visible on an interactive sinusoidal chart
   6. Background music adapts dynamically to the current mood score
+  7. Privacy policy is accepted before first sign-in and remains accessible from Settings
+  8. Users can export their data in machine-readable format and can permanently delete their account/data
+  9. AI features are gated behind explicit consent with processor transparency
+  10. Requirements can be synced to GitHub Issues via tooling for traceable delivery
 **Plans**: TBD
 
 ### Phase 8: Diaries & Wellness (v2)
 **Goal**: Complete the wellness ecosystem with Jodorowsky tarot readings, specialized health diaries (menstrual, therapeutic, intestinal), Traditional Chinese Medicine content, chakra/aura/meditation modules, crystal/ritual guides, voice journaling, and advanced multidimensional reports
 **Depends on**: Phase 7
-**Requirements**: TAROT-01, DIARY-MENS-01, DIARY-THER-01, DIARY-INTE-01, WHISPER-01, MTC-01, CHAKRA-01, AURA-01, MEDIT-01, STONE-01, RITUAL-01, RPT-MAP-01, RPT-CONST-01, RPT-POWER-01, RPT-GREEN-01, RPT-ASTRAL-01, RPT-LIGHT-01, TRANSIT-01
+**Requirements**: TAROT-01, DIARY-MENS-01, DIARY-THER-01, DIARY-INTE-01, WHISPER-01, MTC-01, CHAKRA-01, AURA-01, MEDIT-01, STONE-01, RITUAL-01, RPT-MAP-01, RPT-CONST-01, RPT-POWER-01, RPT-GREEN-01, RPT-ASTRAL-01, RPT-LIGHT-01, TRANSIT-01, GDPR-06
 **Success Criteria** (what must be TRUE):
   1. Users receive a daily Jodorowsky tarot card reading with authentic imagery and Italian interpretation
   2. Users can track menstrual cycle data with calendar view and trend analysis
@@ -150,6 +155,7 @@ Plans:
   6. TCM, Acupuncture, Chakra, Aura, Meditation, Crystal, and Ritual sections provide daily mood-aware guidance
   7. Advanced reports include: Temporal Map (colored nebulae), Wellness Constellation, Power Words, Green Heart Method, Astral Synchrony, and "Ricorda la Tua Luce" (difficult moments support)
   8. Planetary transits section shows current astrological transits with mood correlation
+  9. Each health-sensitive diary requires independent explicit consent before first use, with independent revocation
 **Plans**: TBD
 
 ## Progress
