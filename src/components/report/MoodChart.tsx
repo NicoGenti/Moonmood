@@ -78,7 +78,7 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
     const totalGap = barCount + 1;
     const barWidth = Math.max(4, innerWidth / totalGap);
     const barW = Math.min(barWidth * 0.7, 28);
-    const gap = (innerWidth - barW * barCount) / (barCount + 1);
+    const gap = Math.max(0, (innerWidth - barW * barCount) / (barCount + 1));
 
     return (
       <div ref={containerRef} className={styles.wrapper}>
@@ -162,41 +162,54 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
               </text>
             );
           })}
-        </svg>
 
-        {/* Tooltip */}
-        <AnimatePresence>
-          {tooltip && (
-            <motion.div
-              className={styles.tooltip}
-              initial={{ opacity: 0, scale: 0.9, y: 6 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 6 }}
-              transition={{ duration: 0.15 }}
-              style={{
-                left: Math.min(
-                  Math.max(tooltip.x, 40),
-                  chartWidth - 80
-                ),
-                top: Math.max(tooltip.y - 52, 4),
-              }}
-            >
-              <span
-                className={styles.tooltipScore}
-                style={{ color: getMoodLevel(Number(tooltip.log.moodScore)).color }}
+          {/* Tooltip */}
+          <AnimatePresence>
+            {tooltip && (
+              <motion.g
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.15 }}
               >
-                {getMoodLevel(Number(tooltip.log.moodScore)).emoji}{" "}
-                {tooltip.log.moodScore}/10
-              </span>
-              <span className={styles.tooltipDate}>
-                {new Date(`${tooltip.log.date}T00:00:00`).toLocaleDateString(
-                  "it-IT",
-                  { day: "numeric", month: "long", year: "numeric" }
-                )}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <rect
+                  x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80) - 36}
+                  y={Math.max(tooltip.y - 52, 4)}
+                  width={72}
+                  height={44}
+                  rx={8}
+                  fill="rgba(15,12,41,0.95)"
+                  stroke="rgba(139,92,246,0.4)"
+                  strokeWidth={1}
+                />
+                <text
+                  x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
+                  y={Math.max(tooltip.y - 52, 4) + 17}
+                  textAnchor="middle"
+                  fill={getMoodLevel(Number(tooltip.log.moodScore)).color}
+                  fontSize={13}
+                  fontFamily="inherit"
+                >
+                  {getMoodLevel(Number(tooltip.log.moodScore)).emoji}{" "}
+                  {tooltip.log.moodScore}/10
+                </text>
+                <text
+                  x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
+                  y={Math.max(tooltip.y - 52, 4) + 34}
+                  textAnchor="middle"
+                  fill="rgba(245,247,255,0.7)"
+                  fontSize={9}
+                  fontFamily="inherit"
+                >
+                  {new Date(`${tooltip.log.date}T00:00:00`).toLocaleDateString(
+                    "it-IT",
+                    { day: "numeric", month: "short", year: "numeric" }
+                  )}
+                </text>
+              </motion.g>
+            )}
+          </AnimatePresence>
+        </svg>
       </div>
     );
   }
@@ -221,6 +234,20 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
     linePath +
     ` L ${points[points.length - 1].x} ${PADDING_Y_TOP + innerHeight}` +
     ` L ${points[0].x} ${PADDING_Y_TOP + innerHeight} Z`;
+
+  // Single-point case: render dot centered instead of line
+  const isSinglePoint = pointCount === 1;
+
+  // pathLength animation via strokeDashoffset
+  const linePathRef = useRef<SVGPathElement>(null);
+  const [lineDash, setLineDash] = useState<[number, number]>([0, 0]);
+
+  useEffect(() => {
+    if (linePathRef.current && !isSinglePoint) {
+      const len = linePathRef.current.getTotalLength();
+      setLineDash([len, len]);
+    }
+  }, [isSinglePoint, linePath]);
 
   return (
     <div ref={containerRef} className={styles.wrapper}>
@@ -263,27 +290,47 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
         })}
 
         {/* Area fill */}
-        <motion.path
-          d={areaPath}
-          fill="url(#areaGradient)"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        />
+        {!isSinglePoint && (
+          <motion.path
+            d={areaPath}
+            fill="url(#areaGradient)"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          />
+        )}
+
+        {/* Single-point indicator */}
+        {isSinglePoint && points[0] && (
+          <motion.circle
+            cx={PADDING_X + innerWidth / 2}
+            cy={points[0].y}
+            r={6}
+            fill="rgba(139,92,246,0.8)"
+            stroke="rgba(10,10,20,0.6)"
+            strokeWidth={1.5}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          />
+        )}
 
         {/* Line */}
-        <motion.path
-          d={linePath}
-          fill="none"
-          stroke="url(#areaGradient)"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1, ease: "easeOut", delay: 0.1 }}
-          style={{ stroke: "rgba(139,92,246,0.8)" }}
-        />
+        {!isSinglePoint && (
+          <motion.path
+            ref={linePathRef}
+            d={linePath}
+            fill="none"
+            stroke="rgba(139,92,246,0.8)"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={lineDash.join(" ")}
+            initial={{ strokeDashoffset: lineDash[0] }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.1 }}
+          />
+        )}
 
         {/* Dots */}
         {points.map((p, i) => {
@@ -326,43 +373,54 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
               </text>
             ));
         })()}
-      </svg>
 
-      {/* Tooltip */}
-      <AnimatePresence>
-        {tooltip && (
-          <motion.div
-            className={styles.tooltip}
-            initial={{ opacity: 0, scale: 0.9, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 6 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              left: Math.min(
-                Math.max(tooltip.x, 40),
-                chartWidth - 80
-              ),
-              top: Math.max(tooltip.y - 52, 4),
-            }}
-          >
-            <span
-              className={styles.tooltipScore}
-              style={{
-                color: getMoodLevel(Number(tooltip.log.moodScore)).color,
-              }}
+        {/* Tooltip */}
+        <AnimatePresence>
+          {tooltip && (
+            <motion.g
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
             >
-              {getMoodLevel(Number(tooltip.log.moodScore)).emoji}{" "}
-              {tooltip.log.moodScore}/10
-            </span>
-            <span className={styles.tooltipDate}>
-              {new Date(`${tooltip.log.date}T00:00:00`).toLocaleDateString(
-                "it-IT",
-                { day: "numeric", month: "long", year: "numeric" }
-              )}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <rect
+                x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80) - 36}
+                y={Math.max(tooltip.y - 52, 4)}
+                width={72}
+                height={44}
+                rx={8}
+                fill="rgba(15,12,41,0.95)"
+                stroke="rgba(139,92,246,0.4)"
+                strokeWidth={1}
+              />
+              <text
+                x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
+                y={Math.max(tooltip.y - 52, 4) + 17}
+                textAnchor="middle"
+                fill={getMoodLevel(Number(tooltip.log.moodScore)).color}
+                fontSize={13}
+                fontFamily="inherit"
+              >
+                {getMoodLevel(Number(tooltip.log.moodScore)).emoji}{" "}
+                {tooltip.log.moodScore}/10
+              </text>
+              <text
+                x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
+                y={Math.max(tooltip.y - 52, 4) + 34}
+                textAnchor="middle"
+                fill="rgba(245,247,255,0.7)"
+                fontSize={9}
+                fontFamily="inherit"
+              >
+                {new Date(`${tooltip.log.date}T00:00:00`).toLocaleDateString(
+                  "it-IT",
+                  { day: "numeric", month: "short", year: "numeric" }
+                )}
+              </text>
+            </motion.g>
+          )}
+        </AnimatePresence>
+      </svg>
     </div>
   );
 }
