@@ -32,13 +32,21 @@ const PADDING_Y_BOTTOM = 28;
 const PADDING_Y_TOP = 12;
 const Y_MAX = 10;
 
+function clampTooltipX(x: number, chartWidth: number, tooltipW: number): number {
+  const halfW = tooltipW / 2;
+  return Math.min(Math.max(x, halfW + 4), chartWidth - halfW - 4);
+}
+
+function clampTooltipY(y: number, chartHeight: number, tooltipH: number): number {
+  return Math.max(4, Math.min(y - tooltipH / 2, chartHeight - tooltipH - 4));
+}
+
 export default function MoodChart({ logs, range }: MoodChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
 
-  const isBarChart = range === "7" || range === "30";
-
+  const isBarChart = range === "7";
   const reversed = useMemo(() => [...logs].reverse(), [logs]);
 
   const chartWidth = containerWidth || 320;
@@ -61,7 +69,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
     return () => observer.disconnect();
   }, [handleResize]);
 
-  // Y-axis ticks
   const yTicks = [0, 5, 10];
 
   if (reversed.length === 0) {
@@ -72,13 +79,20 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
     );
   }
 
-  // ── BAR CHART ──────────────────────────────────────────────────────────────
+  // ── BAR CHART (7gg only) ───────────────────────────────────────────────────
   if (isBarChart) {
     const barCount = reversed.length;
     const totalGap = barCount + 1;
     const barWidth = Math.max(4, innerWidth / totalGap);
     const barW = Math.min(barWidth * 0.7, 28);
     const gap = Math.max(0, (innerWidth - barW * barCount) / (barCount + 1));
+
+    const labelEvery = barCount <= 7 ? 1 : barCount <= 14 ? 2 : barCount <= 30 ? 3 : 5;
+
+    const TOOLTIP_W = 72;
+    const TOOLTIP_H = 44;
+    const tooltipY = clampTooltipY(tooltip?.y ?? 0, chartHeight, TOOLTIP_H);
+    const tooltipX = tooltip ? clampTooltipX(tooltip.x, chartWidth, TOOLTIP_W) : 0;
 
     return (
       <div ref={containerRef} className={styles.wrapper}>
@@ -88,7 +102,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
           className={styles.svg}
         >
-          {/* Y-axis lines */}
           {yTicks.map((tick) => {
             const y = PADDING_Y_TOP + innerHeight - (tick / Y_MAX) * innerHeight;
             return (
@@ -113,12 +126,10 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
             );
           })}
 
-          {/* Bars */}
           {reversed.map((log, i) => {
             const x = PADDING_X + gap + i * (barW + gap);
             const barH = (Number(log.moodScore) / Y_MAX) * innerHeight;
             const y = PADDING_Y_TOP + innerHeight - barH;
-            const barCenterY = y + barH / 2;
             const level = getMoodLevel(Number(log.moodScore));
 
             return (
@@ -135,20 +146,20 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
                 animate={{ height: barH, y }}
                 transition={{
                   duration: 0.45,
-                  delay: i * 0.05,
+                  delay: i * 0.04,
                   ease: "easeOut",
                 }}
-                onHoverStart={() => setTooltip({ log, x: x + barW / 2, y: barCenterY })}
+                onHoverStart={() => setTooltip({ log, x: x + barW / 2, y: y + barH / 2 })}
                 onHoverEnd={() => setTooltip(null)}
-                onPointerDown={() => setTooltip({ log, x: x + barW / 2, y: barCenterY })}
+                onPointerDown={() => setTooltip({ log, x: x + barW / 2, y: y + barH / 2 })}
                 onPointerUp={() => setTooltip(null)}
                 style={{ cursor: "pointer" }}
               />
             );
           })}
 
-          {/* X-axis labels */}
           {reversed.map((log, i) => {
+            if (i % labelEvery !== 0 && i !== reversed.length - 1) return null;
             const x = PADDING_X + gap + i * (barW + gap) + barW / 2;
             const y = chartHeight - 4;
             return (
@@ -164,7 +175,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
             );
           })}
 
-          {/* Tooltip */}
           <AnimatePresence>
             {tooltip && (
               <motion.g
@@ -174,18 +184,18 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
                 transition={{ duration: 0.15 }}
               >
                 <rect
-                  x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80) - 36}
-                  y={Math.max(tooltip.y - 22, 4)}
-                  width={72}
-                  height={44}
+                  x={tooltipX - TOOLTIP_W / 2}
+                  y={tooltipY}
+                  width={TOOLTIP_W}
+                  height={TOOLTIP_H}
                   rx={8}
                   fill="rgba(15,12,41,0.95)"
                   stroke="rgba(139,92,246,0.4)"
                   strokeWidth={1}
                 />
                 <text
-                  x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
-                  y={Math.max(tooltip.y - 22, 4) + 17}
+                  x={tooltipX}
+                  y={tooltipY + 17}
                   textAnchor="middle"
                   fill={getMoodLevel(Number(tooltip.log.moodScore)).color}
                   fontSize={13}
@@ -195,8 +205,8 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
                   {tooltip.log.moodScore}/10
                 </text>
                 <text
-                  x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
-                  y={Math.max(tooltip.y - 22, 4) + 34}
+                  x={tooltipX}
+                  y={tooltipY + 34}
                   textAnchor="middle"
                   fill="rgba(245,247,255,0.7)"
                   fontSize={9}
@@ -215,7 +225,7 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
     );
   }
 
-  // ── LINE CHART ─────────────────────────────────────────────────────────────
+  // ── LINE CHART (30/90/all) ─────────────────────────────────────────────────
   const pointCount = reversed.length;
   const stepX = innerWidth / Math.max(pointCount - 1, 1);
 
@@ -225,21 +235,18 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
     y: PADDING_Y_TOP + innerHeight - (Number(log.moodScore) / Y_MAX) * innerHeight,
   }));
 
-  // Build SVG path
   const linePath = points
     .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
     .join(" ");
 
-  // Area path (for gradient fill)
   const areaPath =
     linePath +
     ` L ${points[points.length - 1].x} ${PADDING_Y_TOP + innerHeight}` +
     ` L ${points[0].x} ${PADDING_Y_TOP + innerHeight} Z`;
 
-  // Single-point case: render dot centered instead of line
   const isSinglePoint = pointCount === 1;
+  const useHeavyAnimations = pointCount <= 30;
 
-  // pathLength animation via strokeDashoffset
   const linePathRef = useRef<SVGPathElement>(null);
   const [lineDash, setLineDash] = useState<[number, number]>([0, 0]);
 
@@ -248,7 +255,14 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
       const len = linePathRef.current.getTotalLength();
       setLineDash([len, len]);
     }
-  }, [isSinglePoint, linePath]);
+  }, [isSinglePoint]);
+
+  const labelEvery = pointCount <= 7 ? 1 : pointCount <= 14 ? 2 : pointCount <= 30 ? 3 : 7;
+
+  const TOOLTIP_W = 72;
+  const TOOLTIP_H = 44;
+  const tooltipY = clampTooltipY(tooltip?.y ?? 0, chartHeight, TOOLTIP_H);
+  const tooltipX = tooltip ? clampTooltipX(tooltip.x, chartWidth, TOOLTIP_W) : 0;
 
   return (
     <div ref={containerRef} className={styles.wrapper}>
@@ -265,7 +279,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
           </linearGradient>
         </defs>
 
-        {/* Y-axis lines */}
         {yTicks.map((tick) => {
           const y = PADDING_Y_TOP + innerHeight - (tick / Y_MAX) * innerHeight;
           return (
@@ -290,7 +303,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
           );
         })}
 
-        {/* Area fill */}
         {!isSinglePoint && (
           <motion.path
             d={areaPath}
@@ -301,7 +313,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
           />
         )}
 
-        {/* Single-point indicator */}
         {isSinglePoint && points[0] && (
           <motion.circle
             cx={PADDING_X + innerWidth / 2}
@@ -316,7 +327,6 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
           />
         )}
 
-        {/* Line */}
         {!isSinglePoint && (
           <motion.path
             ref={linePathRef}
@@ -333,49 +343,63 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
           />
         )}
 
-        {/* Dots */}
-        {points.map((p, i) => {
-          const level = getMoodLevel(Number(p.log.moodScore));
-          return (
-            <motion.circle
+        {useHeavyAnimations
+          ? points.map((p, i) => {
+              const level = getMoodLevel(Number(p.log.moodScore));
+              return (
+                <motion.circle
+                  key={p.log.date}
+                  cx={p.x}
+                  cy={p.y}
+                  r={0}
+                  fill={level.color}
+                  stroke="rgba(10,10,20,0.6)"
+                  strokeWidth={1.5}
+                  initial={{ r: 0, opacity: 0 }}
+                  animate={{ r: 5, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.3 + i * 0.02 }}
+                  onHoverStart={() => setTooltip({ log: p.log, x: p.x, y: p.y })}
+                  onHoverEnd={() => setTooltip(null)}
+                  onPointerDown={() => setTooltip({ log: p.log, x: p.x, y: p.y })}
+                  onPointerUp={() => setTooltip(null)}
+                  style={{ cursor: "pointer" }}
+                />
+              );
+            })
+          : points.map((p) => {
+              const level = getMoodLevel(Number(p.log.moodScore));
+              return (
+                <circle
+                  key={p.log.date}
+                  cx={p.x}
+                  cy={p.y}
+                  r={4}
+                  fill={level.color}
+                  stroke="rgba(10,10,20,0.6)"
+                  strokeWidth={1.5}
+                  onMouseEnter={() => setTooltip({ log: p.log, x: p.x, y: p.y })}
+                  onMouseLeave={() => setTooltip(null)}
+                  onPointerDown={() => setTooltip({ log: p.log, x: p.x, y: p.y })}
+                  onPointerUp={() => setTooltip(null)}
+                  style={{ cursor: "pointer" }}
+                />
+              );
+            })}
+
+        {points
+          .filter((_, i) => i % labelEvery === 0 || i === pointCount - 1)
+          .map((p) => (
+            <text
               key={p.log.date}
-              cx={p.x}
-              cy={p.y}
-              r={0}
-              fill={level.color}
-              stroke="rgba(10,10,20,0.6)"
-              strokeWidth={1.5}
-              initial={{ r: 0, opacity: 0 }}
-              animate={{ r: 5, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 + i * 0.02 }}
-              onHoverStart={() => setTooltip({ log: p.log, x: p.x, y: p.y })}
-              onHoverEnd={() => setTooltip(null)}
-              onPointerDown={() => setTooltip({ log: p.log, x: p.x, y: p.y })}
-              onPointerUp={() => setTooltip(null)}
-              style={{ cursor: "pointer" }}
-            />
-          );
-        })}
+              x={p.x}
+              y={chartHeight - 4}
+              textAnchor="middle"
+              className={styles.axisLabel}
+            >
+              {formatDate(p.log.date)}
+            </text>
+          ))}
 
-        {/* X-axis labels — show every Nth to avoid crowding */}
-        {(() => {
-          const labelEvery = pointCount <= 7 ? 1 : pointCount <= 14 ? 2 : 4;
-          return points
-            .filter((_, i) => i % labelEvery === 0 || i === pointCount - 1)
-            .map((p) => (
-              <text
-                key={p.log.date}
-                x={p.x}
-                y={chartHeight - 4}
-                textAnchor="middle"
-                className={styles.axisLabel}
-              >
-                {formatDate(p.log.date)}
-              </text>
-            ));
-        })()}
-
-        {/* Tooltip */}
         <AnimatePresence>
           {tooltip && (
             <motion.g
@@ -385,18 +409,18 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
               transition={{ duration: 0.15 }}
             >
               <rect
-                x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80) - 36}
-                y={Math.max(tooltip.y - 52, 4)}
-                width={72}
-                height={44}
+                x={tooltipX - TOOLTIP_W / 2}
+                y={tooltipY}
+                width={TOOLTIP_W}
+                height={TOOLTIP_H}
                 rx={8}
                 fill="rgba(15,12,41,0.95)"
                 stroke="rgba(139,92,246,0.4)"
                 strokeWidth={1}
               />
               <text
-                x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
-                y={Math.max(tooltip.y - 52, 4) + 17}
+                x={tooltipX}
+                y={tooltipY + 17}
                 textAnchor="middle"
                 fill={getMoodLevel(Number(tooltip.log.moodScore)).color}
                 fontSize={13}
@@ -406,8 +430,8 @@ export default function MoodChart({ logs, range }: MoodChartProps) {
                 {tooltip.log.moodScore}/10
               </text>
               <text
-                x={Math.min(Math.max(tooltip.x, 40), chartWidth - 80)}
-                y={Math.max(tooltip.y - 52, 4) + 34}
+                x={tooltipX}
+                y={tooltipY + 34}
                 textAnchor="middle"
                 fill="rgba(245,247,255,0.7)"
                 fontSize={9}
