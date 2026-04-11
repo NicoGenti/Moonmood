@@ -8,6 +8,7 @@ import { getMoodLevel } from "@/lib/moodConfig";
 import type { MoodLog } from "@/types/mood";
 import FilterBar from "@/components/report/FilterBar";
 import MoodChart from "@/components/report/MoodChart";
+import ChartErrorBoundary from "@/components/report/ChartErrorBoundary";
 import { filterLogsByRange, computeStatsForRange } from "@/services/reportStats";
 import type { ReportStats } from "@/services/reportStats";
 import type { Range } from "@/components/report/MoodChart";
@@ -212,7 +213,9 @@ function ReportContent() {
               <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 Andamento umore — {rangeLabel}
               </p>
-              <MoodChart logs={filteredLogs} range={range} />
+              <ChartErrorBoundary>
+                <MoodChart logs={filteredLogs} range={range} />
+              </ChartErrorBoundary>
             </div>
           </motion.div>
 
