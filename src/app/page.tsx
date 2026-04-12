@@ -104,45 +104,6 @@ export default function Home() {
             <SticazziCard />
           </motion.div>
 
-          {/* Oracle CTA */}
-          <motion.div variants={fadeUp}>
-            <Link href="/oracle">
-              <div
-                className="glass rounded-2xl p-5 flex items-center gap-4"
-                style={{
-                  background: "linear-gradient(135deg, var(--violet-bg-strong) 0%, rgba(6,182,212,0.12) 100%)",
-                  border: "1px solid var(--violet-border)",
-                }}
-              >
-                <span className="text-3xl">🌙</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                    Oracolo del giorno
-                  </p>
-                  <p className="text-xs mt-0.5 text-subtle">
-                    {sessionState.status === "saved"
-                      ? "La tua carta ti aspetta"
-                      : "Registra l'umore per accedere"}
-                  </p>
-                </div>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="chevron-icon"
-                  aria-hidden
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </div>
-            </Link>
-          </motion.div>
-
           {/* Il tuo flusso emotivo */}
           <motion.div variants={fadeUp}>
             <div className="glass rounded-2xl p-5 space-y-3">
@@ -158,28 +119,8 @@ export default function Home() {
                   Vedi tutto
                 </Link>
               </div>
-              <MoodHistory />
+              <MoodHistory limit={3} />
             </div>
-          </motion.div>
-
-          {/* Quick actions row */}
-          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
-            <Link
-              href="/report"
-              className="glass-interactive rounded-2xl p-4 flex flex-col gap-2"
-            >
-              <span className="text-xl">📊</span>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Report</p>
-              <p className="text-xs text-subtle">I tuoi trend</p>
-            </Link>
-            <Link
-              href="/oracle"
-              className="glass-interactive rounded-2xl p-4 flex flex-col gap-2"
-            >
-              <span className="text-xl">🔮</span>
-              <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Oracolo</p>
-              <p className="text-xs text-subtle">Messaggio del giorno</p>
-            </Link>
           </motion.div>
 
           {/* Footer disclaimer */}

@@ -12,8 +12,12 @@ function formatDateIt(date: string): string {
   });
 }
 
-export function MoodHistory() {
-  const { groups, hasMore, loadMore, isLoading } = useMoodHistory();
+interface MoodHistoryProps {
+  limit?: number;
+}
+
+export function MoodHistory({ limit }: MoodHistoryProps) {
+  const { groups, hasMore, loadMore, isLoading } = useMoodHistory(limit);
 
   if (isLoading) {
     return null;
@@ -104,7 +108,7 @@ export function MoodHistory() {
         ))}
       </div>
 
-      {hasMore && (
+      {hasMore && !limit && (
         <button
           type="button"
           onClick={loadMore}
