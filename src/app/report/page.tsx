@@ -125,14 +125,19 @@ export default function ReportPage() {
           animate="show"
           className="flex flex-col gap-4"
         >
-          {/* Metric tiles grid */}
-          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
-            <MetricCard
-              label="Umore medio"
-              value={`${report.avgScore}/10`}
-              icon={getMoodLevel(Math.round(report.avgScore)).emoji}
-              color={getMoodLevel(Math.round(report.avgScore)).color}
-            />
+           {/* Metric tiles grid */}
+           <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
+             {(() => {
+               const avgLevel = getMoodLevel(Math.round(report.avgScore));
+               return (
+                 <MetricCard
+                   label="Umore medio"
+                   value={`${report.avgScore}/10`}
+                   icon={avgLevel.emoji}
+                   color={avgLevel.color}
+                 />
+               );
+             })()}
             <MetricCard
               label="Sessioni totali"
               value={String(report.totalLogs)}
