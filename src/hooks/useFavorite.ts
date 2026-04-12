@@ -18,6 +18,7 @@ export function useFavorite(
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
+    if (!contentId) return;
     let cancelled = false;
     isFavorite(type, contentId).then((result) => {
       if (!cancelled) setFavorited(result);
@@ -28,12 +29,16 @@ export function useFavorite(
   }, [type, contentId]);
 
   const toggle = useCallback(async () => {
+    if (!contentId) return;
     setAnimating(true);
     if (favorited) {
       await removeFavorite(type, contentId);
       setFavorited(false);
     } else {
-      await addFavorite(type, contentId);
+      const already = await isFavorite(type, contentId);
+      if (!already) {
+        await addFavorite(type, contentId);
+      }
       setFavorited(true);
     }
     setTimeout(() => setAnimating(false), 300);
