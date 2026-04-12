@@ -7,7 +7,9 @@ import { useFavorite } from "@/hooks/useFavorite";
 import { ContentCard } from "@/components/ui/ContentCard";
 import type { SticazziEntry } from "@/types/oracle";
 
-export function SticazziCard() {
+import { memo } from "react";
+
+function SticazziCardBase() {
   const enabled = useSticazziEnabled();
   const entry = getDailySticazzi(new Date(), sticazzi as SticazziEntry[]);
   const { favorited, toggle, animating } = useFavorite("sticazzi", entry?.id ?? "");
@@ -29,3 +31,5 @@ export function SticazziCard() {
     />
   );
 }
+
+export const SticazziCard = memo(SticazziCardBase);

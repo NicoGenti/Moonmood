@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { getSaveMessage } from "@/lib/moodConfig";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface SaveMoodButtonProps {
   onSave: () => Promise<void>;
@@ -29,6 +30,7 @@ export function SaveMoodButton({ onSave, moodScore = 5, disabled, className }: S
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
+  const prefersReducedMotion = useReducedMotion();
 
   async function handleSave() {
     if (saving || disabled) {
@@ -42,7 +44,7 @@ export function SaveMoodButton({ onSave, moodScore = 5, disabled, className }: S
       setSaved(true);
 
       // Sparkle effect per score alti (7+)
-      if (moodScore >= 7) {
+      if (moodScore >= 7 && !prefersReducedMotion) {
         const count = 5 + Math.floor(Math.random() * 4); // 5-8
         setSparkles(generateSparkles(count));
         setTimeout(() => setSparkles([]), 700);

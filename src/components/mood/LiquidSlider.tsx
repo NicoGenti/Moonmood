@@ -10,6 +10,7 @@ import {
 } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMoodLevel } from "@/lib/moodConfig";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 const MIN_SCORE = 0;
 const MAX_SCORE = 10;
@@ -52,6 +53,7 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
   const trackRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
   const x = useMotionValue(0);
+  const prefersReducedMotion = useReducedMotion();
 
   const [maxDragX, setMaxDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -258,12 +260,16 @@ export function LiquidSlider({ value, onValueChange, className }: LiquidSliderPr
           animate={
             isDragging
               ? { opacity: 0.5 }
-              : { opacity: [0.3, 0.5, 0.3] }
+              : prefersReducedMotion
+                ? { opacity: 0.3 }
+                : { opacity: [0.3, 0.5, 0.3] }
           }
           transition={
             isDragging
               ? { duration: 0.2 }
-              : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+              : prefersReducedMotion
+                ? { duration: 0 }
+                : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
           }
         />
 
