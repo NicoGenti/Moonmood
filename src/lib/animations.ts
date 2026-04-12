@@ -25,9 +25,10 @@ export const staggerSlow: Variants = {
 
 /**
  * Standard fade-up entrance for individual items within a stagger container.
+ * y:14 matches the original mood/oracle/report page values.
  */
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 14 },
   show: {
     opacity: 1,
     y: 0,

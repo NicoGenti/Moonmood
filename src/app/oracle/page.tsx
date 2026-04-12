@@ -202,7 +202,6 @@ function ApprofondimentiAccordion({ card }: ApprofondimentiAccordionProps) {
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.22 }}
           className="chevron-icon"
-          style={{ display: "inline-flex" }}
           aria-hidden
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

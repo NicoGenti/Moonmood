@@ -326,6 +326,7 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Chevron icon */
   .chevron-icon {
+    display: inline-flex;
     color: var(--text-muted);
     flex-shrink: 0;
   }
