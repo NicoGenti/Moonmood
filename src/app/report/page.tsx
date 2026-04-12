@@ -6,6 +6,7 @@ import { getAllLogs } from "@/services/db";
 import { calculateMoodTrend } from "@/services/moodTrend";
 import { getMoodLevel } from "@/lib/moodConfig";
 import { staggerContainer, fadeUp } from "@/lib/animations";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { MoodLog } from "@/types/mood";
 
 interface ReportData {
@@ -244,6 +245,8 @@ function MetricCard({ label, value, icon, color }: MetricCardProps) {
 /* ─── MiniMoodChart ─── */
 
 function MiniMoodChart({ logs }: { logs: MoodLog[] }) {
+  const reducedMotion = useReducedMotion();
+
   if (logs.length === 0) {
     return (
       <p className="text-sm text-center py-4 text-muted">
@@ -264,6 +267,7 @@ function MiniMoodChart({ logs }: { logs: MoodLog[] }) {
           day: "numeric",
           month: "short",
         });
+        const finalHeight = { height: `${heightPct}%` };
 
         return (
           <div key={log.date} className="flex flex-col items-center gap-1 flex-1">
@@ -271,9 +275,9 @@ function MiniMoodChart({ logs }: { logs: MoodLog[] }) {
               <motion.div
                 className="w-full rounded-sm"
                 style={{ backgroundColor: level.color, opacity: 0.85 }}
-                initial={{ height: 0 }}
-                animate={{ height: `${heightPct}%` }}
-                transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+                initial={reducedMotion ? finalHeight : { height: 0 }}
+                animate={finalHeight}
+                transition={reducedMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut", delay: 0.1 }}
                 title={`${dateLabel}: ${log.moodScore}/10`}
               />
             </div>
