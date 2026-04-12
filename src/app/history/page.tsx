@@ -1,11 +1,14 @@
-import { Suspense } from "react";
+import dynamic from "next/dynamic";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
-import { HistoryPageClient } from "@/app/history/HistoryPageClient";
+const HistoryPageClient = dynamic(
+  () => import("@/app/history/HistoryPageClient").then((mod) => ({ default: mod.HistoryPageClient })),
+  {
+    ssr: false,
+    loading: () => <LoadingScreen />,
+  },
+);
 
 export default function HistoryPage() {
-  return (
-    <Suspense fallback={null}>
-      <HistoryPageClient />
-    </Suspense>
-  );
+  return <HistoryPageClient />;
 }

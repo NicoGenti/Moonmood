@@ -7,7 +7,9 @@ import { useFavorite } from "@/hooks/useFavorite";
 import { ContentCard } from "@/components/ui/ContentCard";
 import type { AphorismEntry } from "@/types/oracle";
 
-export function EcoDelGiorno() {
+import { memo } from "react";
+
+function EcoDelGiornoBase() {
   const enabled = useEcoEnabled();
   const entry = getDailyAphorism(new Date(), aphorisms as AphorismEntry[]);
   const { favorited, toggle, animating } = useFavorite("aphorism", entry?.id ?? "");
@@ -30,3 +32,5 @@ export function EcoDelGiorno() {
     />
   );
 }
+
+export const EcoDelGiorno = memo(EcoDelGiornoBase);

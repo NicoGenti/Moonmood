@@ -1,0 +1,55 @@
+## Summary
+
+Implement 4 targeted performance and accessibility optimizations for the Moonmood PWA.
+
+## Changes
+
+### 1. Blob animation reduction on mobile
+- **File:** `src/hooks/useIsMobile.ts` (new), `src/components/moonmood/MoonmoodGradientOverlay.tsx`
+- Reduce BLOB_DRIFT from 4 to 2 blobs on mobile viewports (≤768px) via new `useIsMobile` hook
+- Light mode routes (settings, privacy, favorites, report) continue to use 2 blobs
+- Hook uses `matchMedia` with SSR safety and reactive `change` listener
+
+### 2. prefers-reduced-motion support
+- **Files:** `src/components/mood/LiquidSlider.tsx`, `src/components/mood/ReadOnlyView.tsx`, `src/components/mood/SaveMoodButton.tsx`
+- Disable looping animations when OS "Reduce Motion" is active:
+  - LiquidSlider glow pulse → static opacity
+  - ReadOnlyView breathing emoji → static scale
+  - SaveMoodButton sparkle burst → skipped entirely
+- All one-shot transitions (drag spring, tap, page entrance) preserved
+
+### 3. Code splitting with next/dynamic
+- **Files:** `src/app/oracle/page.tsx` (new `OraclePageClient.tsx`), `src/app/history/page.tsx`
+- `/oracle` and `/history` routes lazy-loaded via `next/dynamic` with `ssr: false` and `LoadingScreen` fallback
+- Oracle page First Load JS reduced to 5.78 kB (heavy oracle deps in separate chunk)
+
+### 4. React.memo on home components
+- **Files:** `src/components/home/EcoDelGiorno.tsx`, `src/components/home/SticazziCard.tsx`
+- Both wrapped in `React.memo()` to prevent unnecessary re-renders
+
+### 5. DRY refactor
+- **File:** `src/lib/matchMedia.ts` (new)
+- Extracted shared `isMatchMediaAvailable` utility used by both `useReducedMotion` and `useIsMobile`
+- Standardized dynamic import pattern across oracle and history routes
+
+## Requirements addressed
+
+| Requirement | Status |
+|-------------|--------|
+| BLOB_DRIFT mobile reduction | ✅ |
+| prefers-reduced-motion support | ✅ |
+| Code splitting /oracle, /history | ✅ |
+| React.memo EcoDelGiorno, SticazziCard | ✅ |
+| Manifest already exists (UI-03) | ✅ (pre-existing) |
+
+## Verification
+
+- TypeScript: clean
+- Tests: 120/120 passing
+- Build: static export successful
+- Lint: no errors
+
+## Todo
+
+- [ ] Review implementation
+- [ ] Merge to master

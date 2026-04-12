@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Mood Input** - User can log daily mood with Moonmood UI and liquid slider (completed 2026-04-07)
 - [x] **Phase 2: Oracle Response** - App delivers a meaningful oracle card and remedy based on mood and lunar phase (completed 2026-04-08)
 - [x] **Phase 3: Mood History** - User can review past logs and oracle responses (completed 2026-04-08)
-- [ ] **Phase 4: PWA Shell** - App is installable and works fully offline
+- [x] **Phase 4: PWA Shell** - App is installable and works fully offline (completed 2026-04-12)
 - [ ] **Phase 5: Quick Wins** - Surface bundled content, improve reports, add settings and favorites
 - [ ] **Phase 6: Content Expansion** - Angel cards, animal totems, dream diary, lunar strip, social sharing
 - [ ] **Phase 7: Backend & Architecture** - Authentication, cloud sync, push notifications, AI integration, multiple daily logs, adaptive music
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Mood Input | 6/6 | Complete   | 2026-04-07 |
 | 2. Oracle Response | 7/7 | Complete    | 2026-04-08 |
 | 3. Mood History | 3/3 | Complete | 2026-04-08 |
-| 4. PWA Shell | 0/? | Not started | - |
+| 4. PWA Shell | 2/2 | Complete | 2026-04-12 |
 | 5. Quick Wins | 0/? | Not started | - |
 | 6. Content Expansion (v2) | 0/? | Not started | - |
 | 7. Backend & Architecture (v2) | 0/? | Not started | - |

@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useMoodScore } from "@/hooks/useMoodStore";
 import { useGradientIntensity } from "@/context/GradientIntensityContext";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 // Secondary/utility routes that use lightweight gradient mode (fewer blobs, lower opacity)
 const LIGHT_MODE_ROUTES = ["/settings", "/privacy", "/favorites", "/report"];
@@ -79,8 +80,9 @@ export function MoonmoodGradientOverlay({ intensity: intensityProp }: MoonmoodGr
   const intensity = intensityProp ?? contextIntensity;
   const pathname = usePathname();
   const reducedMotion = useReducedMotion();
+  const isMobile = useIsMobile();
   const isLightMode = LIGHT_MODE_ROUTES.includes((pathname ?? "") as string);
-  const activeBlobs = isLightMode ? BLOB_DRIFT.slice(0, 2) : BLOB_DRIFT;
+  const activeBlobs = isLightMode || isMobile ? BLOB_DRIFT.slice(0, 2) : BLOB_DRIFT;
   const blurClass = isLightMode ? "blur-2xl" : "blur-3xl";
   const moodMotion = useMotionValue(moodScore);
   const gradientBackground = useTransform(moodMotion, (value) => buildGradient(value));

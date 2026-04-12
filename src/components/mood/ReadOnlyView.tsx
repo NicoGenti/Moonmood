@@ -8,6 +8,7 @@ import { getMoodLevel, getEncouragingMessage } from "@/lib/moodConfig";
 import type { MoodLog } from "@/types/mood";
 import { MoodHistory } from "@/components/mood/MoodHistory";
 import { useGradientIntensity } from "@/context/GradientIntensityContext";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface ReadOnlyViewProps {
   log: MoodLog;
@@ -41,6 +42,7 @@ export function ReadOnlyView({ log, onEdit }: ReadOnlyViewProps) {
   const moodLevel = getMoodLevel(log.moodScore);
   const encouragingMessage = getEncouragingMessage();
   const { setIntensity } = useGradientIntensity();
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     setIntensity(0.6);
@@ -59,8 +61,8 @@ export function ReadOnlyView({ log, onEdit }: ReadOnlyViewProps) {
         <motion.div variants={item} className="flex flex-col items-center gap-2">
           <motion.span
             className="text-7xl"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 1.05, 1] }}
+            transition={prefersReducedMotion ? undefined : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
             aria-hidden
           >
             {moodLevel.emoji}

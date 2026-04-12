@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-/** Returns true when matchMedia is available and functional. */
-function isMatchMediaAvailable(): boolean {
-  return typeof window !== "undefined" && typeof window.matchMedia === "function";
-}
+import { isMatchMediaAvailable } from "@/lib/matchMedia";
 
 /**
  * Returns `true` when the OS-level "Reduce Motion" accessibility setting is
