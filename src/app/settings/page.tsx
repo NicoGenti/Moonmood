@@ -57,9 +57,14 @@ export default function SettingsPage() {
   const [showToast, setShowToast] = useState(false);
 
   const handleConfirmClear = useCallback(async () => {
-    await clearAllLocalData();
-    setShowConfirm(false);
-    setShowToast(true);
+    try {
+      await clearAllLocalData();
+      setShowConfirm(false);
+      setShowToast(true);
+    } catch (err) {
+      console.error("Failed to clear data:", err);
+      setShowConfirm(false);
+    }
   }, []);
 
   return (

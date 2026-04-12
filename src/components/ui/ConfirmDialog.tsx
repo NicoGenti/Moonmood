@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface ConfirmDialogProps {
@@ -23,6 +24,27 @@ export function ConfirmDialog({
   onCancel,
   danger = false,
 }: ConfirmDialogProps) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // Fix 2: Auto-focus cancel button when dialog opens
+  useEffect(() => {
+    if (open) {
+      cancelRef.current?.focus();
+    }
+  }, [open]);
+
+  // Fix 3: Escape key closes dialog
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCancel();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onCancel]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -45,8 +67,12 @@ export function ConfirmDialog({
           }}
         >
           {/* Card — stop propagation so backdrop click doesn't fire from card */}
+          {/* Fix 1: ARIA dialog semantics */}
           <motion.div
             key="confirm-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -56,6 +82,7 @@ export function ConfirmDialog({
             style={{ maxWidth: "24rem", width: "100%" }}
           >
             <h2
+              id="confirm-dialog-title"
               className="font-display text-lg font-bold"
               style={{ color: "var(--text-primary)" }}
             >
@@ -67,6 +94,7 @@ export function ConfirmDialog({
               className="mt-6 flex gap-3 justify-end"
             >
               <button
+                ref={cancelRef}
                 type="button"
                 onClick={onCancel}
                 className="btn-ghost"

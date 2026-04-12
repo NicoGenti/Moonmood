@@ -24,16 +24,15 @@ export function Toast({ message, visible, onHide, duration = 3000 }: ToastProps)
           key="toast"
           role="status"
           aria-live="polite"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 16, x: "-50%" }}
+          animate={{ opacity: 1, y: 0, x: "-50%" }}
+          exit={{ opacity: 0, y: 8, x: "-50%" }}
           transition={{ duration: 0.22, ease: "easeOut" }}
           className="glass-elevated"
           style={{
             position: "fixed",
             bottom: "calc(var(--nav-height) + 16px)",
             left: "50%",
-            transform: "translateX(-50%)",
             zIndex: 9998,
             borderRadius: "9999px",
             padding: "0.75rem 1.25rem",
