@@ -107,10 +107,10 @@ function ReportContent() {
 
   useEffect(() => {
     setIsLoading(true);
-    void getLogsForRange(range).then((logs) => {
-      setAllLogs(logs);
-      setIsLoading(false);
-    });
+    void getLogsForRange(range)
+      .then((logs) => { setAllLogs(logs); })
+      .catch(() => { setAllLogs([]); })
+      .finally(() => { setIsLoading(false); });
   }, [range]);
 
   const stats = computeStatsForRange(allLogs);

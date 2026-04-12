@@ -60,15 +60,26 @@ export function useDailySession(): UseDailySessionReturn {
     try {
       const today = getTodayDateString();
 
-      // Pre-calculate oracle data before writing to DB (DB-01: single write)
-      const moonPhase = getMoonPhase(new Date());
+      // Pre-calculate oracle data before writing to DB (DB-01: single write, DB-02: targeted query)
+      // Non-fatal: if oracle computation fails, mood is still saved without oracle data
+      let oracleData:
+        | { moonPhase: ReturnType<typeof getMoonPhase>; oracleCardId: string; oracleRemedyId: string }
+        | undefined;
 
-      // Targeted query for recent logs — no full table scan (DB-02)
-      const recentLogs = await getRecentLogs(today, 30);
-      const trend = calculateMoodTrend(recentLogs, moodScore);
-      const result = selectOracle({ moodScore, moonPhase, trend }, oracleCards, remedies);
+      try {
+        const moonPhase = getMoonPhase(new Date());
+        const recentLogs = await getRecentLogs(today, 30);
+        const trend = calculateMoodTrend(recentLogs, moodScore);
+        const result = selectOracle({ moodScore, moonPhase, trend }, oracleCards, remedies);
+        oracleData = { moonPhase, oracleCardId: result.card.id, oracleRemedyId: result.remedy.id };
+      } catch (oracleError) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Errore durante la selezione dell'oracolo", oracleError);
+        }
+        // non-fatal: navigate to oracle page anyway (it will show graceful fallback)
+      }
 
-      // Single atomic write with all data
+      // Single atomic write — includes oracle data when available
       const savedLog = await saveMoodLog({
         ...buildDailySessionSavePayload({
           sessionState,
@@ -76,9 +87,7 @@ export function useDailySession(): UseDailySessionReturn {
           moodScore,
           note,
         }),
-        moonPhase,
-        oracleCardId: result.card.id,
-        oracleRemedyId: result.remedy.id,
+        ...oracleData,
       });
 
       setSessionState({ status: "saved", log: savedLog });

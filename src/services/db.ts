@@ -38,10 +38,31 @@ class MoonmoodDB extends Dexie {
       dailyLogs: "id, date, createdAt, moonPhase, oracleCardId",
       favorites: "id, type, contentId, savedAt",
     });
-    this.version(4).stores({
-      dailyLogs: "id, date, createdAt, moonPhase, oracleCardId",
-      favorites: "id, &[type+contentId], savedAt",
-    });
+    this.version(4)
+      .stores({
+        dailyLogs: "id, date, createdAt, moonPhase, oracleCardId",
+        favorites: "id, &[type+contentId], savedAt",
+      })
+      .upgrade(async (tx) => {
+        // Remove duplicate [type+contentId] pairs before adding the unique index.
+        // Keep the entry with the highest savedAt for each pair.
+        const all = await tx.table<FavoriteEntry>("favorites").toArray();
+        const seen = new Map<string, string>();
+        const toDelete: string[] = [];
+
+        for (const fav of [...all].sort((a, b) => b.savedAt - a.savedAt)) {
+          const key = `${fav.type}:${fav.contentId}`;
+          if (seen.has(key)) {
+            toDelete.push(fav.id);
+          } else {
+            seen.set(key, fav.id);
+          }
+        }
+
+        if (toDelete.length > 0) {
+          await tx.table("favorites").bulkDelete(toDelete);
+        }
+      });
   }
 }
 
@@ -274,10 +295,14 @@ export async function addFavorite(
   };
   try {
     await db.favorites.add(entry);
-  } catch {
-    // Unique constraint violation — entry already exists, return the existing one
-    const existing = await db.favorites.where({ type, contentId }).first();
-    if (existing) return existing;
+  } catch (err) {
+    if (err instanceof Dexie.ConstraintError) {
+      // Unique constraint violation — entry already exists, return the existing one
+      const existing = await db.favorites.where({ type, contentId }).first();
+      if (existing) return existing;
+    } else {
+      throw err;
+    }
   }
   return entry;
 }

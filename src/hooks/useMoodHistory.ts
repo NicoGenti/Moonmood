@@ -33,18 +33,23 @@ export function useMoodHistory(limit?: number): UseMoodHistoryReturn {
 
   const pageSize = limit ?? PAGE_SIZE;
 
-  // Load total count once on mount
-  useEffect(() => {
-    void getLogsCount().then(setTotalCount);
-  }, []);
-
-  // Load a page of logs whenever offset changes
+  // Load a page of logs — on the first page, count and logs are fetched together
+  // to avoid the race condition where hasMore = false before count resolves
   const loadPage = useCallback(
     async (currentOffset: number) => {
       setIsLoading(true);
       try {
-        const page = await getLogsPage(currentOffset, pageSize);
-        setLogs((prev) => (currentOffset === 0 ? page : [...prev, ...page]));
+        if (currentOffset === 0) {
+          const [page, count] = await Promise.all([
+            getLogsPage(0, pageSize),
+            getLogsCount(),
+          ]);
+          setTotalCount(count);
+          setLogs(page);
+        } else {
+          const page = await getLogsPage(currentOffset, pageSize);
+          setLogs((prev) => [...prev, ...page]);
+        }
       } finally {
         setIsLoading(false);
       }
