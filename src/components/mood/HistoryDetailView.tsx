@@ -8,6 +8,18 @@ interface HistoryDetailViewProps {
 }
 
 export function HistoryDetailView({ state, onBack }: HistoryDetailViewProps) {
+  // Format date in Italian: "martedì 8 aprile 2026"
+  const formatDateInItalian = (dateStr: string): string => {
+    const date = new Date(`${dateStr}T00:00:00`);
+    const formatted = date.toLocaleDateString("it-IT", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col gap-4 px-4 pt-8 pb-4">
       <button
@@ -32,7 +44,7 @@ export function HistoryDetailView({ state, onBack }: HistoryDetailViewProps) {
           className="font-display text-2xl font-bold capitalize"
           style={{ color: "var(--text-primary)" }}
         >
-          {state.date}
+          {formatDateInItalian(state.date)}
         </h1>
         <p className="text-sm text-body">
           Umore: <strong>{state.moodScore}/10</strong>
