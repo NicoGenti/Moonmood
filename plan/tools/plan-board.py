@@ -3,7 +3,7 @@
 
 Sottocomandi:
   check  [--root DIR] [--json]
-  move   --id <id> --to <column> [--root DIR] [--dry-run] [--json]
+  move   --id <id> --to <column> [--root DIR] [--dry-run] [--comprehension <none|pass|skipped|fail|disabled|n/a>] [--json]
   new    --id <id> --title T --owner O --executor E --body FILE [--column draft] [--root DIR] [--dry-run] [--json]
   adopt  --file NAME --owner O --executor E [--root DIR] [--dry-run] [--json]
 
@@ -106,6 +106,9 @@ def inspect_file(path: Path, column: str):
     for k in ("title", "created", "updated", "owner", "executor"):
         if not fm.get(k):
             findings.append(("WARN", "missing-frontmatter-key", f"chiave frontmatter mancante: {k}"))
+    if column in ("qa", "complete") and not fm.get("comprehension"):
+        findings.append(("WARN", "missing-comprehension",
+                         f"chiave frontmatter mancante: comprehension (colonna {column})"))
     return findings, fm
 
 
@@ -176,7 +179,8 @@ def update_status(path: Path, fm: dict, status: str) -> str:
     return render_frontmatter(fm, nl) + body
 
 
-def cmd_move(root: Path, ident: str, to: str, dry_run: bool, as_json: bool) -> int:
+def cmd_move(root: Path, ident: str, to: str, dry_run: bool, as_json: bool,
+             comprehension: str | None = None) -> int:
     if to not in COLUMNS:
         return fail("bad-column", f"colonna '{to}' non valida (usare: {', '.join(COLUMNS)})", as_json)
     hits = find_plan(root, ident)
@@ -201,7 +205,12 @@ def cmd_move(root: Path, ident: str, to: str, dry_run: bool, as_json: bool) -> i
         return fail("target-exists", f"{dst} esiste gia'", as_json)
     payload = {"ok": True, "action": "move", "id": path.stem, "from": col, "to": to,
                "path": str(dst), "dry_run": dry_run}
+    if comprehension is not None:
+        payload["comprehension"] = comprehension
     if not dry_run:
+        fm = dict(fm)
+        if comprehension is not None:
+            fm["comprehension"] = comprehension
         path.write_text(update_status(path, fm, to), encoding="utf-8", newline="")
         path.replace(dst)
         payload["verified"] = dst.is_file() and not path.exists()
@@ -283,6 +292,9 @@ def main(argv=None) -> int:
     p.add_argument("--id", required=True)
     p.add_argument("--to", required=True)
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--comprehension",
+                   choices=["none", "pass", "skipped", "fail", "disabled", "n/a"],
+                   default=None)
     add_common(p)
 
     p = sub.add_parser("new")
@@ -307,7 +319,7 @@ def main(argv=None) -> int:
     if a.cmd == "check":
         return cmd_check(root, a.json)
     if a.cmd == "move":
-        return cmd_move(root, a.id, a.to, a.dry_run, a.json)
+        return cmd_move(root, a.id, a.to, a.dry_run, a.json, a.comprehension)
     if a.cmd == "new":
         return cmd_new(root, a.id, a.title, a.owner, a.executor, Path(a.body), a.column, a.dry_run, a.json)
     if a.cmd == "adopt":
