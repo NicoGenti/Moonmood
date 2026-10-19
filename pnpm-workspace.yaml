@@ -1,0 +1,5 @@
+# pnpm v10+ richiede l'approvazione esplicita degli script di build.
+# canvas e unrs-resolver hanno script di build necessari al runtime.
+allowBuilds:
+  canvas: true
+  unrs-resolver: true
