@@ -34,7 +34,7 @@ jobs:
           if [[ "$ACTOR" == "NicoGenti" || "$ASSOC" == "OWNER" || "$ASSOC" == "MEMBER" ]]; then allow=true; fi
           if [[ "$LABEL" == "agent:run" ]] || [[ "$BODY" == /agent* ]]; then want=true; fi
           if printf '%s' "$LABELS" | grep -q 'plan:mirror'; then mirror=true; fi
-          if [[ "$allow" == true && "$want" == true && "$IS_PR" == "no" && "$mirror" == true ]]; then
+          if [[ "$allow" == true && "$want" == true && "$IS_PR" == "no" ]]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
@@ -107,6 +107,26 @@ jobs:
             echo "ERRORE: token {{TIER_ non risolti in alcuni agenti" >&2; exit 1
           fi
           grep -m1 "^model:" "$HOME/.config/opencode/agents/orchestrator.md"
+      - name: Adopt the issue into the board if needed (PC-independent)
+        run: |
+          set -euo pipefail
+          PLAN=$(grep -rlE $'^gh_issue: '"${ISSUE}"$'?$' plan/draft plan/in-progress plan/qa 2>/dev/null | head -1 || true)
+          if [ -n "$PLAN" ]; then
+            echo "piano gia' presente: $PLAN"
+            exit 0
+          fi
+          echo "nessun piano per #$ISSUE: adozione automatica"
+          gh issue edit "$ISSUE" -R "$GITHUB_REPOSITORY" --add-label "plan:mirror" --add-label "plan:draft" || true
+          python plan/tools/issue_bridge.py pull --repo . --board plan             --remote "$GITHUB_REPOSITORY" --board-tool plan/tools/plan-board.py --json
+          git config user.name  "issue-bridge"
+          git config user.email "issue-bridge@users.noreply.github.com"
+          git add plan
+          if git diff --cached --quiet; then
+            echo "nessun file da committare"
+          else
+            git commit -m "plan($ISSUE): adozione automatica da issue GitHub"
+            git push origin "$BASE"
+          fi
       - name: Resolve the plan file bound to the issue (pre-run, per il prompt)
         id: plan
         run: |
