@@ -1,0 +1,41 @@
+name: spike-opencode (throwaway)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  spike:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      KIT_SHA: f31b341a01ffaf0216a4d6eacec15fa5a331c23e
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install OpenCode 2 (pinned)
+        run: npm i -g @opencode/cli@2.0.32 && opencode --version
+      - name: Fetch the kit at the pinned commit
+        run: |
+          set -euo pipefail
+          git init -q /tmp/kit
+          git -C /tmp/kit remote add origin https://github.com/NicoGenti/opencode-orchestrator-kit
+          git -C /tmp/kit fetch -q --depth 1 origin "$KIT_SHA"
+          git -C /tmp/kit checkout -q FETCH_HEAD
+          echo "kit HEAD: $(git -C /tmp/kit rev-parse HEAD)"
+      - name: "Install the kit globally (validation skipped: no provider to probe)"
+        run: |
+          set -euo pipefail
+          bash /tmp/kit/install.sh --skip-validation global
+          test -f "$HOME/.config/opencode/AGENTS.md"
+          test -f "$HOME/.config/opencode/agents/orchestrator.md"
+      - name: Free-tier smoke test with the pinned model
+        run: |
+          set -euo pipefail
+          opencode run --agent build -m opencode/mimo-v2.6-flash-free \
+            "Respond with exactly: SPIKE OK" | tee /tmp/spike.log
+          grep -q "SPIKE OK" /tmp/spike.log
